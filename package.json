@@ -1,0 +1,25 @@
+{
+  "name": "rxwavelambdas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test_suite.js",
+  "scripts": {
+    "start": "NODE_ENV=dev node test_suite.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danvalinotti/RxWaveLambdas.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/danvalinotti/RxWaveLambdas/issues"
+  },
+  "homepage": "https://github.com/danvalinotti/RxWaveLambdas#readme",
+  "dependencies": {
+    "pg": "^7.12.1",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4"
+  }
+}
