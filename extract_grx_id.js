@@ -54,18 +54,20 @@ async function test() {
 
         let id = await fetch(url, {
             method: 'get',
-            headers: {
-                "User-Agent": userAgent,
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "Referrer": referrer
-            }
+	    headers: {
+		"Connection": "keep-alive",
+		"host": "www.goodrx.com",
+		"Referer": "https://www.goodrx.com",
+		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"
+	    }
         }).then((response) => response.text())
         .then((text) => extractId(text))
         .catch((error) => console.log(error))
         console.log(id);
 
-        ids.push(id);
+	setTimeout(() => {
+	    ids.push(id)
+	}, 5000);
         
         // promiseChain = promiseChain.then(waitForResponse(url));
 
