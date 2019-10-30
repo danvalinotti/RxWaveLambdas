@@ -1,5 +1,5 @@
 {
-  "name": "rxwavelambdas",
+  "name": "marketleadingdrugs",
   "version": "1.0.0",
   "description": "",
   "main": "test_suite.js",
@@ -18,14 +18,6 @@
   },
   "homepage": "https://github.com/danvalinotti/RxWaveLambdas#readme",
   "dependencies": {
-    "@types/node": "^12.11.7",
-    "fetch-retry": "^2.2.3",
-    "mongoose": "^5.7.7",
-    "node-fetch": "^2.6.0",
-    "pg": "^7.12.1",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.4",
-    "sleep-async": "^1.0.5",
-    "zipcodes": "^8.0.0"
+    "pg": "^7.12.1"
   }
 }
