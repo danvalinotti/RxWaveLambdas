@@ -19,6 +19,7 @@
   "homepage": "https://github.com/danvalinotti/RxWaveLambdas#readme",
   "dependencies": {
     "@types/node": "^12.11.7",
+    "excel4node": "^1.7.2",
     "fetch-retry": "^2.2.3",
     "mongoose": "^5.7.7",
     "node-fetch": "^2.6.0",

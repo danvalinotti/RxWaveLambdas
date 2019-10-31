@@ -30,37 +30,50 @@ function timeout(ms) {
 }
 
 async function test() {
-    let drugs = JSON.parse(fs.readFileSync('full_drug_list.json'));
+    let drugs = JSON.parse(fs.readFileSync('exceptions.json'));
     fs.truncateSync('grx_ids.json');
     console.log('id file cleared');
+    let count = 1;
+    let fails = [];
     // let ids = [];
 
     // let promiseChain = Promise.resolve();
     for (let drug of drugs) {
-        const res = await fetchId(drug);
-        let model = new GrxIdModel(res);
-        // console.log(model);
-        model.save(function(err, res) {
-            console.log(`Error: ${err}`);
-            // console.log(res);
-            if (err) {
-                return console.log(err);
-            } else {
-                return console.log(`Saved '${model.drugName}' to DB`)
-            }
-        });
+        const res = await fetchId(drug, count);
+        console.log(count);
+        count += 1;
+
+        if (res.drugName !== undefined) {
+            let model = new GrxIdModel(res);
+            // console.log(model);
+            model.save(function(err, res) {
+                console.log(`Error: ${err}`);
+                // console.log(res);
+                if (err) {
+                    return console.log(err);
+                } else {
+                    return console.log(`Saved '${model.drugName}' to DB`)
+                }
+            });
+        } else {
+            fails.push(res);
+            console.log(`Did NOT save to DB.`);
+        }
     }
 
-    // console.log("NUM IDS: " + ids.length);
-    // const writeText = JSON.stringify(ids);
-    // fs.writeFile('grx_ids.json', writeText, function(err, result) {
-    //     if (err) console.log(err);
-    //     console.log("Write complete");
-    // });
-    // console.log(write);
+    try {
+        const writeText = JSON.stringify(fails);
+        fs.writeFile('grx_ids.json', writeText, function(err, result) {
+            if (err) console.log(err);
+            console.log("Write complete");
+            process.exit();
+        });
+    } catch (error) {
+        console.log(error);
+    }
 }
 
-async function fetchId(drug) {
+async function fetchId(drug, count) {
     const res = generateUrl(drug);
     let response;
     let model = res.model;
@@ -72,18 +85,27 @@ async function fetchId(drug) {
             "Referer": "https://www.goodrx.com",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"
         },
-        retryOn: [403],
-        retryDelay: 30000,
-        retries: 2
+        retryOn: function(attempt, error, response) {
+            if (error !== null || response.status == 403) {
+                console.log(`HTTP ${response.status}, retrying in 60s...`);
+            }
+        },
+        retryDelay: 60000,
+        retries: 1
     }).then((response) => response.text())
     .then((text) => extractId(text))
     .then((id) => {
         response = id;
-        console.log("Waiting 7.5s...")
+        // console.log("Waiting 7.5s...")
     })
     .catch((error) => console.log(error));
+    let t = 7500;
+    if (count % 99 === 0) {
+        t = 60000;
+    }
 
-    return timeout(7500).then(() => {
+    console.log(`Waiting ${t / 1000.0}s...`)
+    return timeout(t).then(() => {
         model.goodRxId = response;
         // console.log(model);
         return model;

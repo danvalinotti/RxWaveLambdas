@@ -45,7 +45,7 @@ function generateUrl(drug) {
           quantity = 1;
           break;
         case "QVAR":
-          name = "QVAR";
+          name = "qvar";
           form = "redihaler";
           dosage = "10.6g-of-" + drug.STRENGTH_MSR + drug.STRENGTH_UNIT_TXT.toLowerCase();
           quantity = 1;
@@ -111,6 +111,9 @@ function generateUrl(drug) {
           dosage = drug.PACKAGE_SIZE_QTY + "-sublingual-tablets-of-" + drug.Strength.toLowerCase().replace(" ", "-");
           quantity = 1;
         }
+      } else if (end === "INFATAB") {
+        form = "chewable-tablet";
+        dosage = drug.Strength.replace(" ", "").toLowerCase();
       } else if (subform === "PACK") {
         let dArr = drug.Strength.split("-");
         form = "kit";
@@ -136,7 +139,8 @@ function generateUrl(drug) {
     case "BOTTLE":
       name = drug.BrandName.replace(" ", "-").toLowerCase();
       quantity = 1;
-      let end = drug.BrandName.split(" ")[drug.BrandName.split(" ").length - 1];
+      let end = drug.DrugName.split(" ")[drug.DrugName.split(" ").length - 1];
+      // console.log(end);
       
       if (end === "LOTION" || end === "SHAMPOO") {
         form = "bottle-of-" + end.toLowerCase();
@@ -152,20 +156,21 @@ function generateUrl(drug) {
       } else if (end === "TABLET") {
         form = "tablet";
         if (drug.Strength.includes("-")) {
-          dosage = drug.Strength.replace(" ", "").toLowerCase(); 
+          dosage = drug.Strength.replace("-", "mg-").toLowerCase() + "mg"; 
         } else {
-          dosage = drug.STRENGTH_MSR + drug.STRENGTH_MSR.toLowerCase();
+          dosage = drug.STRENGTH_MSR + drug.STRENGTH_UNIT_TXT.toLowerCase();
         }
       } else if (end === "PUMP") {
         form = "gel-pump";
+        let dArr = drug.Strength.replace(" ", "").split("-");
         if (drug.Strength.includes("-")) {
-          let dArr = drug.Strength.replace(" ", "").split("-");
           dosage = drug.PACKAGE_SIZE_QTY + "-of-" + dArr[0].replace("%", "%25") + "-" + dArr[1].replace("%", "%25");
         } else {
           dosage =  drug.PACKAGE_SIZE_QTY + "-of-" + dArr[0].replace("%", "%25");
         }
       } else if (end === "SPRAY") {
         form = "bottle-of-spray";
+        let dArr = drug.Strength.replace(" ", "").split("-");
         dosage =  drug.PACKAGE_SIZE_QTY + "ml-of-" + dArr[0].replace("%", "%25");
       } else if (end === "INFATAB") {
         form = "chewable-tablet";
@@ -181,7 +186,7 @@ function generateUrl(drug) {
         form = "bottle-of-oral-solution";
         dosage = drug.PACKAGE_SIZE_QTY + "ml-of-" + drug.Strength.toLowerCase().replace("/", "-");
       } else if (end === "GEL") {
-        let percent = drug.BrandName.split(" ")[drug.BrandName.split(" ").length - 2];
+        let percent = drug.DrugName.split(" ")[drug.DrugName.split(" ").length - 2];
         form = "gel-pump";
         dosage = drug.PACKAGE_SIZE_QTY + "g-of-" + percent.replace("%", "%25");
       } else if (end === "MG" || end === "TB") {
@@ -194,7 +199,7 @@ function generateUrl(drug) {
       } break;
     case "BOX":
       let nameSplit = drug.BrandName.split(" ");
-      name = nameSplit[0];
+      name = nameSplit[0].replace(" ", "-").toLowerCase();
       quantity = 1;
 
       if (nameSplit.length > 1) {
@@ -214,22 +219,23 @@ function generateUrl(drug) {
           dosage = drug.PACKAGE_SIZE_QTY + "-units";
         }
       } else {
+        name = drug.BrandName.replace(" ", "-").toLowerCase();
         if (drug.Strength.includes("%")) {
           form = "patch";
           dosage = drug.Strength.replace("0", "") + "25";
           quantity = drug.PACKAGE_SIZE_QTY;
         } else {
           form = "carton";
-          dosage = drug.PACKAGE_SIZE_QTY + "-once-weekly-patches-of-" + drug.STRENGTH_MSR + drug.STRENGTH_UNIT_TXT.replace("/24h", "-day").toLowerCase;
+          dosage = drug.PACKAGE_SIZE_QTY + "-once-weekly-patches-of-" + drug.STRENGTH_MSR + drug.STRENGTH_UNIT_TXT.replace("/24h", "-day").toLowerCase();
         }
       } break;
     case "CANISTER":
       let nameSplit1 = drug.BrandName.split(" ");
-      name = nameSplit1[0].toLowerCase;
+      name = nameSplit1[0].toLowerCase();
       quantity = 1;
 
       if (nameSplit1.length > 1) {
-        form = nameSplit1[1].toLowerCase;
+        form = nameSplit1[1].toLowerCase();
         if (form === "children") {
           form = "inhaler";
         } else if (form === "hfa") {
@@ -237,9 +243,15 @@ function generateUrl(drug) {
         }
         if (drug.Strength.includes("-")) {
           let dArr = drug.Strength.split("-");
+          form = "diskus-inhaler"
           dosage = dArr[0] + "mcg-" + dArr[1].toLowerCase();
         } else {
-          dosage = drug.PACKAGE_SIZE_QTY + "g-of-" + drug.Strength.replace(" ", "").toLowerCase();
+          if (nameSplit1[1] === "FLEXHALER") {
+            form = "flexhaler";
+            dosage = drug.Strength.toLowerCase().replace(" ", "-");
+          } else {
+            dosage = drug.PACKAGE_SIZE_QTY + "g-of-" + drug.Strength.replace(" ", "").toLowerCase();
+          }
         }
       } else {
         form = "inhaler";
@@ -323,6 +335,15 @@ function generateUrl(drug) {
           form = nameArr3[2];
           quantity = 5;
           dosage = `${drug.PACKAGE_SIZE_QTY}ml-of-${drug.STRENGTH_MSR}-units-${drug.VOLUME_UNIT_TXT.toLowerCase()}`
+        } else if (nameArr3[1] === "solostar") {
+          quantity = 1;
+          if (nameArr3[0] === "toujeo") {
+            form = "carton";
+            dosage = "3-prefilled-" +  drug.PACKAGE_SIZE_QTY + "-pens-of-" + drug.STRENGTH_MSR + "-units/ml";
+          } else {
+            form = "solostar-pen";
+            dosage = drug.PACKAGE_SIZE_QTY + drug.VOLUME_UNIT_TXT.toLowerCase() + "-of-" + drug.STRENGTH_MSR + "-units/ml";
+          } 
         }
       } else {
         if (name === 'symjepi') {
@@ -345,6 +366,10 @@ function generateUrl(drug) {
         form = `tube-of-${dArr[dArr.length - 1]}`;
         dosage = `${drug.PACKAGE_SIZE_QTY}g-of-${drug.Strength}`; 
         quantity = 1;
+      } else {
+        form = 'kit';
+        dosage = 'two-3-ounce-tubes-of-' + drug.Strength + '25';
+        quantity = 1;
       }
       break;
     case "TUBE/KIT":
@@ -358,41 +383,43 @@ function generateUrl(drug) {
       form = "vial";
       quantity = 1;
 
-      if (nameArr2.length > 1) {
-        name = nameArr2[0] + "-" + nameArr2[1];
+      if (nameArr2.length === 1) {
+        name = nameArr2[0];
+        if (drug.STRENGTH_UNIT_TXT === "UNIT") {
+          dosage = drug.PACKAGE_SIZE_QTY + "ml-of-" + drug.STRENGTH_MSR + "-units-ml";
+        } else {
+          form = "kit";
+          dosage = drug.PACKAGE_SIZE_QTY + `-${name === "humatrope" ? 'cartridge' : 'pens'}-of-` + drug.Strength.toLowerCase().replace(" ", "-") + `${name === "humatrope" ? "" : "-pen"}`
+        }
       } else if (nameArr2.length > 2) {
         name = nameArr2[0] + "-" + nameArr2[2];
         dosage = drug.PACKAGE_SIZE_QTY + "ml-of-" + drug.STRENGTH_MSR + "-units-ml";
       } else {
-        name = nameArr2[0];
-        if (drug.STRENGTH_UNIT_TXT === "UNIT") {
-          dosage = drug.PACKAGE_SIZE_QTY + "ml-of-" + drug.STRENGTH_MSR + "-units-ml";
-        } else if (name === "humatrope") {
-          form = "kit";
-          dosage = drug.PACKAGE_SIZE_QTY + `-${name === "humatrope" ? 'cartridge' : 'pens'}-of-` + drug.Strength.toLowerCase().replace(" ", "-") + `${name === "humatrope" ? "" : "-pen"}`
-        }
+        name = nameArr2[0] + "-" + nameArr2[1];
+        dosage = drug.PACKAGE_SIZE_QTY + "ml-of-" + drug.STRENGTH_MSR + "-units-ml";
       }
       break;
     default:
       break;
   }
   
-  
-  let url = base + name;
-  let formParam;
-  if (drug.drugForm !== "") {
-    formParam = "?form=" + form + "&";
+  let label_override;
+  if (drug.BrandName.includes("/")) {
+    label_override = capitalize(drug.BrandName.replace("/", "%2F").replace(" ", "-"));
   } else {
-    formParam = "?";
+    label_override = capitalize(name);
   }
-  let dosageParam = "dosage=" + dosage;
+  
+  let url = base + name + "?label_override=" + label_override;
+  let formParam = "&form=" + form;
+  let dosageParam = "&dosage=" + dosage;
   let quantityParam = "&quantity=" + quantity;
   
   let response = url + formParam + dosageParam + quantityParam;
   const model = {
-    drugName: name.replace(/^\w/, c => c.toUpperCase()),
+    drugName: capitalize(name),
     drugForm: form,
-    dosageStrength: drug.Strength,
+    dosageStrength: deserialize(dosage),
     dosageStrengthNum: drug.STRENGTH_MSR,
     dosageStrengthUnit: drug.STRENGTH_UNIT_TXT,
     volumeNum: drug.VOLUME_MSR,
@@ -408,7 +435,7 @@ function generateUrl(drug) {
     console.log({name: name, form: form, dosage: dosage, quantity: quantity});
     return {
       url: response,
-      model: {},
+      model: {name: name, form: form, dosage: dosage, quantity: quantity},
       error: "ERROR: undefined value"
     }
   } else {
@@ -417,6 +444,15 @@ function generateUrl(drug) {
       model: model
     }
   }
+}
+
+function deserialize(name) {
+  return name.replace("%25", "%").replace(/-/, " ");
+}
+
+function capitalize(name) {
+  let n = '' + name;
+  return n.charAt(0).toUpperCase() + n.slice(1);
 }
 
 module.exports = generateUrl;
