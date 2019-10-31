@@ -1,0 +1,21 @@
+[
+  {
+    "GCN_NBR": 31304,
+    "GSN": 68505,
+    "NDC": 310652004,
+    "NDC11": "00310652004",
+    "BrandName": "BYDUREON",
+    "Strength": "2 MG",
+    "STRENGTH_MSR": 2,
+    "STRENGTH_UNIT_TXT": "MG",
+    "VOLUME_MSR": 0,
+    "VOLUME_UNIT_TXT": "",
+    "PACKAGE_DSC": "VIAL",
+    "PACKAGE_SIZE_QTY": 4,
+    "DrugName": "BYDUREON 2 MG VIAL",
+    "REPACKAGER_IND": "N",
+    "PRIVATE_LABELER_IND": "N",
+    "MCI": "DIABETES",
+    "Manufacturer": "ASTRAZENECA"
+  }
+]

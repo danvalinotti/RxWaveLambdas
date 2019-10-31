@@ -8,7 +8,7 @@ mongoose.connect('mongodb://54.81.21.172:27017/rxwave_testing',{
 });
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.ObjectId;
-const GrxIdSchema = new Schema({
+const GoodRxIdSchema = new Schema({
     id: ObjectId,
     drugName: String,
     drugForm: String,
@@ -23,14 +23,14 @@ const GrxIdSchema = new Schema({
     goodRxId: String,
     url: String
 });
-const GrxIdModel = mongoose.model('GrxId', GrxIdSchema);
+const GoodRxIdModel = mongoose.model('GoodRxId', GoodRxIdSchema);
 
 function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function test() {
-    let drugs = JSON.parse(fs.readFileSync('exceptions.json'));
+    let drugs = JSON.parse(fs.readFileSync('full_drug_list.json'));
     fs.truncateSync('grx_ids.json');
     console.log('id file cleared');
     let count = 1;
@@ -44,7 +44,7 @@ async function test() {
         count += 1;
 
         if (res.drugName !== undefined) {
-            let model = new GrxIdModel(res);
+            let model = new GoodRxIdModel(res);
             // console.log(model);
             model.save(function(err, res) {
                 console.log(`Error: ${err}`);
@@ -83,7 +83,7 @@ async function fetchId(drug, count) {
             "Connection": "keep-alive",
             "host": "www.goodrx.com",
             "Referer": "https://www.goodrx.com",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.70 Safari/537.36"
         },
         retryOn: function(attempt, error, response) {
             if (error !== null || response.status == 403) {
