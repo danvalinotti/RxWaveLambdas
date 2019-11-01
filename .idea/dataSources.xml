@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="PostgreSQL - rxwavedb_qa@100.25.217.246" uuid="20ed091d-1e72-46e2-9d03-0eb3bb8168b5">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://100.25.217.246:5432/rxwavedb_qa</jdbc-url>
+    </data-source>
+  </component>
+</project>

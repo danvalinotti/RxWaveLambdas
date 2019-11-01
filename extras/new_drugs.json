@@ -1,0 +1,145 @@
+[{
+        "drugName": "ONETOUCH ",
+        "drugForm": "",
+        "dosageStrength": "ultra blue",
+        "quantity": 25
+    },
+    {
+        "drugName": "TRELEGY ELLIPTA",
+        "drugForm": "",
+        "dosageStrength": "60 blisters of 100 mcg 62.5mcg 25mcg",
+        "quantity": 60
+    },
+    {
+        "drugName": "QVAR",
+        "drugForm": "",
+        "dosageStrength": "10.6g of 80mcg",
+        "quantity": 11
+    },
+    {
+        "drugName": "VYVANSE",
+        "drugForm": "",
+        "dosageStrength": "20 MG",
+        "quantity": 100
+    },
+    {
+        "drugName": "DEXILANT",
+        "drugForm": "",
+        "dosageStrength": "60 MG",
+        "quantity": 90
+    },
+    {
+        "drugName": "ACCU CHEK",
+        "drugForm": "lancing device",
+        "dosageStrength": "fastclix",
+        "quantity": 102
+    },
+    {
+        "drugName": "TOUJEO",
+        "drugForm": "",
+        "dosageStrength": "3 prefilled 1.5ml pens of 300 units ml",
+        "quantity": 2
+    },
+    {
+        "drugName": "HALOG",
+        "drugForm": "tube of cream",
+        "dosageStrength": "60g of 0.1%25",
+        "quantity": 60
+    },
+    {
+        "drugName": "MITIGARE",
+        "drugForm": "",
+        "dosageStrength": "0.6 MG    ",
+        "quantity": 100
+    },
+    {
+        "drugName": "DESOWEN",
+        "drugForm": "tube of cream",
+        "dosageStrength": "60g of 0.05%25",
+        "quantity": 60
+    },
+    {
+        "drugName": "ORALAIR",
+        "drugForm": "",
+        "dosageStrength": "300IR",
+        "quantity": 30
+    },
+    {
+        "drugName": "DUAVEE",
+        "drugForm": "",
+        "dosageStrength": "0.45mg 20mg",
+        "quantity": 30
+    },
+    {
+        "drugName": "LANTUS",
+        "drugForm": "vial",
+        "dosageStrength": "10ml of 100 units ml",
+        "quantity": 10
+    },
+    {
+        "drugName": "CEQUA",
+        "drugForm": "",
+        "dosageStrength": "60 vials of 0.09%25",
+        "quantity": 60
+    },
+    {
+        "drugName": "IMPOYZ",
+        "drugForm": "",
+        "dosageStrength": "100g of 0.025%25",
+        "quantity": 1
+    },
+    {
+        "drugName": "TIGLUTIK",
+        "drugForm": "",
+        "dosageStrength": "300ml of 50mg 10ml",
+        "quantity": 1
+    },
+    {
+        "drugName": "NOVOLIN R",
+        "drugForm": "",
+        "dosageStrength": "10ml of 100 units ml",
+        "quantity": 10
+    },
+    {
+        "drugName": "V GO",
+        "drugForm": "",
+        "dosageStrength": "30 units",
+        "quantity": 1
+    },
+    {
+        "drugName": "GENOTROPIN",
+        "drugForm": "package",
+        "dosageStrength": "7 miniquick devices of 0.2mg",
+        "quantity": 1
+    },
+    {
+        "drugName": "SYNJARDY",
+        "drugForm": "",
+        "dosageStrength": "12.5mg 1000mg",
+        "quantity": 60
+    },
+    {
+        "drugName": "ESTROGEL",
+        "drugForm": "",
+        "dosageStrength": "50g of 0.06%25",
+        "quantity": 50
+    },
+    {
+        "drugName": "ENTERAGAM",
+        "drugForm": "",
+        "dosageStrength": "5 G",
+        "quantity": 30
+    },
+    {
+        "drugName": "BENZACLIN",
+        "drugForm": "jar of gel",
+        "dosageStrength": "50g of 1%25 5%25",
+        "quantity": 1
+    },
+    {
+        "drugName": "XIMINO",
+        "drugForm": "",
+        "dosageStrength": "90 MG",
+        "quantity": 30
+    }
+]

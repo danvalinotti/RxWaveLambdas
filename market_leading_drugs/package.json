@@ -1,10 +1,10 @@
 {
-  "name": "rxwavelambdas",
+  "name": "marketleadingdrugs",
   "version": "1.0.0",
   "description": "",
-  "main": "extras/test_suite.js",
+  "main": "test_suite.js",
   "scripts": {
-    "start": "NODE_ENV=dev node extras/extract_grx_id.js",
+    "start": "NODE_ENV=dev node extract_grx_id.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,16 +18,6 @@
   },
   "homepage": "https://github.com/danvalinotti/RxWaveLambdas#readme",
   "dependencies": {
-    "@types/node": "^12.11.7",
-    "excel4node": "^1.7.2",
-    "fetch-retry": "^2.2.3",
-    "https-proxy-agent": "^3.0.1",
-    "mongoose": "^5.7.7",
-    "node-fetch": "^2.6.0",
-    "pg": "^7.12.1",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.4",
-    "sleep-async": "^1.0.5",
-    "zipcodes": "^8.0.0"
+    "pg": "^7.12.1"
   }
 }
