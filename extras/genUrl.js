@@ -21,7 +21,7 @@ function generateUrl(drug) {
           form = drug.BrandName.split(" ")[1].toLowerCase();
           dosage = "0.45g-of-" + 
                 drug.Strength.split("-")[0] + "mcg-" +
-                drug.Strength.split("-")[1].toLowerCase();
+                drug.Strength.split("-")[1].toLowerCase().replace(" ", "-");
           quantity = 1;
           break;
         case "COMBIVENT RESPIMAT":

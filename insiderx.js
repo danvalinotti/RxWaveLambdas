@@ -243,6 +243,7 @@ exports.myhandler = async function abc() {
                         }
                     });
 
+                    // "Ranks" are actually just assignment to which pharmacy the price is from vvv
                     var pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, OtherPrice, KrogerPrice];
                     console.log(pricesArr)
                     pricesArr.sort(comparePrices)

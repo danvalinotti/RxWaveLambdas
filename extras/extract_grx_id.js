@@ -80,10 +80,11 @@ async function fetchId(drug, count) {
     await fetch(res.url, {
         method: 'get',
         headers: {
-            "Connection": "keep-alive",
-            "host": "www.goodrx.com",
-            "Referer": "https://www.goodrx.com",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.70 Safari/537.36"
+            "Referer": "https://www.google.com/",
+            "Upgrade-Insecure-Requests": "1",
+            "Cookie": "goodrx-v2=ae0381ab4763e0de30e8c3e201a7ae3ffe2703d6L72rXzd91LTmni0JkBjS2Qbt+i1dSgah9qe5cgvkXO0GGuQxeCVp1LnXVH9HXJaJe8G9R4mR+GXYC8ribgTcJQzAKEL42FrUV6VuICrUc5OFk/Ucb/ganXk7GHg5qayGKCZSIuJXxdaEbs+Zpuy2eX5oCKFHboGZQu4A0/Bc8fKVZJLM9iFViUsshVT5U4jt79bCX99iGwelUEAosM9VuBLrpOTpDjH8c8VBjT5GWEwYt4PyUffoYghHvk99BDHFx6f8tMnjWLA0b1qreaFObGTOJYG5mOwk1dALPgTVZMfn62xx5Gdsh0aJQzNvt/XqquqvYhblgJ3GXa2BOf2HNAegLL59g0Da06HlChiphaQ6TH5L6zrfRn0iEyPFhhrEkIPqfSX6z7QNKdQmCk/pcV2uE4OmWO1SGFN/xYkyG9vv0zs31LJmTtCaAqJOWQZll+w=; grx_unique_id=610b6199cdd94d38bb8640586b13bc04; c=; kw=; gclid=; closedWalmartFluShot=true; _pxhd=e8aaf476a43332757480989ddc3aa5d6337c426317cd0466dba237cbca8abb07:f6c8c241-fbe7-11e9-b7d1-3f5eb470d34f; myrx_exp_ab_variant=experiment; csrf_token=e99e695676ae41c3ba5aa76f933a207c; ppa_exp_ab_variant=experiment",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
         },
         retryOn: function(attempt, error, response) {
             if (error !== null || response.status == 403) {

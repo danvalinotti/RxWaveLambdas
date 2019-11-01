@@ -1,7 +1,7 @@
 process.env.DB_HOST = "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
 process.env.REGION = "ohio";
 const {Pool, Client} = require('pg');
-const insideRxHandler = require('./insiderx').myhandler;
+const insideRxHandler = require('../insiderx').myhandler;
 const pool = new Pool({
     user: 'cheetahdb',
     host: 'prod-privdb.cl9r4vrjkocy.us-east-1.rds.amazonaws.com',
