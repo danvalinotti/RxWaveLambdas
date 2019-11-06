@@ -59,7 +59,7 @@ let pricingData1 = {
 let url = ""
 let data = []
 var len = 0;
-exports.myhandler = async function abc() {
+exports.myhandler = async function (event, context) {
     // testing for program is active or not
     //         client.query('select isActive from programmaster where id = "singlecare"', (error, results) => {
     //             if (error) {
@@ -69,13 +69,9 @@ exports.myhandler = async function abc() {
     //             //res = results.rows[0].isactive;
     //             // let status=res.isactive;
     //if(status){
-    var res1 = await client.query("SELECT drug_id FROM shuffle_drugs where flag = 'pending' and region = '" + reg + "'");
+    var res1 = await client.query("SELECT request_id FROM shuffle_drugs where singlecare_flag = 'pending' and region = '" + reg + "'");
     for (var i = 0; i < res1.rows.length; i++) {
-        for (var j = 0; j < res1.rows[i].drug_id.length; j++) {
-            //console.log("print ((((((((((((((((((("+res1.rows[i].drug_id[j]);
-            listDrugs.push(res1.rows[i].drug_id[j]);
-            //console.log("listdrugs:"+listDrugs)
-        }
+        listDrugs.push(res1.rows[i].request_id);
     }
     len = listDrugs.length;
     console.log(len)
@@ -169,15 +165,24 @@ exports.myhandler = async function abc() {
                         const query2 = 'INSERT INTO public_price(average_price, createdat, difference, drug_details_id, lowest_market_price, pharmacy, price, program_id, recommended_price,rank,unc_price) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *';
                         const values = [pricingData1.average_price, pricingData1.createdat, pricingData1.difference, drugUrlList.rows[0].drug_id, pricingData1.lowest_market_price, pricingData1.pharmacy, pricingData1.price, pricingData1.program_id, pricingData1.recommended_price, pricingData1.rank, null];
                         await client.query(query2, values)
-                            .then(res => {
-
-
-                            })
+                            .then(res => {})
                             .catch(e => {
                                 console.log("errr")
                             })
                         // Process html...
                     });
+
+                    DrugId = drugUrlList.rows[0].drug_id;
+                    var query3 = 'UPDATE shuffle_drugs SET singlecare_flag = \'completed\' WHERE request_id = $1';
+                    values = [DrugId];
+                    await client.query(query3, values)
+                        .then(() => {
+                            console.log('Updated shuffle_drugs' + DrugId);
+                        }).catch((error) => console.log(error));
+
+                    if (context.getRemainingTimeInMillis() < 30000) {
+                        process.exit(0);
+                    }
                 })
                 .catch(function (err) {
                     console.log(err)

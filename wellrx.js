@@ -52,14 +52,10 @@ var len = 0;
 var wrxbody = {}
 var query2 = ""
 var values = ""
-exports.myhandler = async function abc() {
-    var res1 = await client.query("SELECT drug_id FROM shuffle_drugs where flag = 'pending' and region = '" + reg + "'");
+exports.myhandler = async function (event, context) {
+    var res1 = await client.query("SELECT request_id FROM shuffle_drugs where wellrx_flag = 'pending' and region = '" + reg + "'");
     for (var i = 0; i < res1.rows.length; i++) {
-        for (var j = 0; j < res1.rows[i].drug_id.length; j++) {
-            //console.log("print ((((((((((((((((((("+res1.rows[i].drug_id[j]);
-            listDrugs.push(res1.rows[i].drug_id[j]);
-            //console.log("listdrugs:"+listDrugs)
-        }
+        listDrugs.push(res1.rows[i].request_id);
     }
     var a = 0;
     len = listDrugs.length;
@@ -194,6 +190,17 @@ exports.myhandler = async function abc() {
                                     console.log("errr")
                                 })
                         });
+
+                        var query3 = 'UPDATE shuffle_drugs SET wellrx_flag = \'completed\' WHERE request_id = $1';
+                        values = [DrugId];
+                        await client.query(query3, values)
+                            .then(() => {
+                                console.log('Updated shuffle_drugs' + DrugId);
+                            }).catch((error) => console.log(error));
+
+                        if (context.getRemainingTimeInMillis() < 30000) {
+                            process.exit();
+                        }
 
                     } else {
                         console.log("else" + DrugId)

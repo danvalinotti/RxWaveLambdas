@@ -1,22 +1,20 @@
 // GOOD RX //
-const {
-    Client
-} = require('/opt/node_modules/pg');
+const {Client} = require('/opt/node_modules/pg');
 var rp = require('/opt/node_modules/request-promise');
 var db_host = process.env.DB_HOST;
 var reg = process.env.REGION;
 
-function DateFunction() {
+function DateFunction(){
     var today = new Date();
-    var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
     var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    var dateTime = date + ' ' + time;
+    var dateTime = date+' '+time;
     return dateTime;
 }
 
-function comparePrices(a, b) {
-    if (a.price === null) return 1;
-    if (b.price === null) return -1;
+function comparePrices(a,b){
+    if(a.price === null) return 1;
+    if(b.price === null) return -1;
     if (a.price > b.price) return 1;
     if (b.price >= a.price) return -1;
 }
@@ -27,72 +25,72 @@ async function sleep(ms) {
 }
 
 async function getGoodRxPrices(url, options, drugId, query, values, client) {
-    return await rp(options).then(async function (response) {
+    return await rp(options).then(async function(response) {
         var data = response;
 
         if (data != undefined) {
             var results = data.results;
             console.log(results);
             var CVSPrice = {};
-            CVSPrice.price = null;
-            CVSPrice.pharmacy = null;
+            CVSPrice.price = null ;
+            CVSPrice.pharmacy=null;
             CVSPrice.rank = 0;
             var WalmartPrice = {};
-            WalmartPrice.price = null;
-            WalmartPrice.pharmacy = null;
+            WalmartPrice.price =  null;
+            WalmartPrice.pharmacy=null;
             WalmartPrice.rank = 0;
             var WalgreenPrice = {};
-            WalgreenPrice.price = null;
-            WalgreenPrice.pharmacy = null;
+            WalgreenPrice.price =  null;
+            WalgreenPrice.pharmacy=null;
             WalgreenPrice.rank = 0;
             var KrogerPrice = {};
-            KrogerPrice.price = null;
-            KrogerPrice.pharmacy = null;
+            KrogerPrice.price =  null ;
+            KrogerPrice.pharmacy =null;
             KrogerPrice.rank = 0;
             var OtherPrice = {};
-            OtherPrice.price = null;
-            OtherPrice.pharmacy = null;
+            OtherPrice.price =  null ;
+            OtherPrice.pharmacy =null;
             OtherPrice.rank = 0;
 
-            results.forEach(function (value) {
-                if (value != null) {
+            results.forEach(function(value){
+                if(value!= null){
 
-                    if (value.pharmacy.name.toUpperCase().includes("CVS")) {
+                    if(value.pharmacy.name.toUpperCase().includes("CVS")){
 
-                        if (CVSPrice.price == null || CVSPrice.price > parseFloat(value.prices[0].price)) {
-                            CVSPrice.price = parseFloat(value.prices[0].price);
-                            CVSPrice.pharmacy = value.pharmacy.name;
+                        if(CVSPrice.price == null || CVSPrice.price > parseFloat(value.prices[0].price)){
+                            CVSPrice.price =  parseFloat(value.prices[0].price);
+                            CVSPrice.pharmacy=value.pharmacy.name;
                         }
 
-                    } else if (value.pharmacy.name.toUpperCase().includes("WALMART")) {
-                        if (WalmartPrice.price == null || WalmartPrice.price > parseFloat(value.prices[0].price)) {
-                            WalmartPrice.price = parseFloat(value.prices[0].price);
-                            WalmartPrice.pharmacy = value.pharmacy.name;
+                    }else if(value.pharmacy.name.toUpperCase().includes("WALMART")){
+                        if(WalmartPrice.price == null ||WalmartPrice.price > parseFloat(value.prices[0].price)){
+                            WalmartPrice.price =  parseFloat(value.prices[0].price);
+                            WalmartPrice.pharmacy=value.pharmacy.name;
                         }
 
-                    } else if (value.pharmacy.name.toUpperCase().includes("WALGREENS")) {
-                        if (WalgreenPrice.price == null || WalgreenPrice.price > parseFloat(value.prices[0].price)) {
-                            WalgreenPrice.price = parseFloat(value.prices[0].price);
-                            WalgreenPrice.pharmacy = value.pharmacy.name;
+                    }else if(value.pharmacy.name.toUpperCase().includes("WALGREENS")){
+                        if(WalgreenPrice.price == null ||WalgreenPrice.price > parseFloat(value.prices[0].price)){
+                            WalgreenPrice.price =  parseFloat(value.prices[0].price);
+                            WalgreenPrice.pharmacy=value.pharmacy.name;
                         }
 
-                    } else if (value.pharmacy.name.toUpperCase().includes("KROGER")) {
-                        if (KrogerPrice.price == null || KrogerPrice.price > parseFloat(value.prices[0].price)) {
-                            KrogerPrice.price = parseFloat(value.prices[0].price);
-                            KrogerPrice.pharmacy = value.pharmacy.name;
+                    }else if(value.pharmacy.name.toUpperCase().includes("KROGER")){
+                        if(KrogerPrice.price == null ||KrogerPrice.price > parseFloat(value.prices[0].price)){
+                            KrogerPrice.price =  parseFloat(value.prices[0].price);
+                            KrogerPrice.pharmacy=value.pharmacy.name;
                         }
 
-                    } else {
-                        if (OtherPrice.price == null || OtherPrice.price > parseFloat(value.prices[0].price)) {
-                            OtherPrice.price = parseFloat(value.prices[0].price);
-                            OtherPrice.pharmacy = value.pharmacy.name;
+                    }else {
+                        if(OtherPrice.price == null || OtherPrice.price > parseFloat(value.prices[0].price)){
+                            OtherPrice.price =  parseFloat(value.prices[0].price);
+                            OtherPrice.pharmacy=value.pharmacy.name;
                         }
 
                     }
 
                 }
             });
-            var pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, OtherPrice, KrogerPrice];
+            var pricesArr = [WalgreenPrice,WalmartPrice,CVSPrice,OtherPrice, KrogerPrice];
             console.log(pricesArr)
             pricesArr.sort(comparePrices)
 
@@ -101,19 +99,19 @@ async function getGoodRxPrices(url, options, drugId, query, values, client) {
             pricesArr[2].rank = 2;
             pricesArr[3].rank = 3;
             pricesArr[4].rank = 4;
-            pricesArr.forEach(async function (price) {
+            pricesArr.forEach(async function (price){
                 const pricingData = {
                     //id : "",
-                    average_price: 0.0,
-                    createdat: DateFunction(),
-                    difference: 0.0,
-                    lowest_market_price: 0.0,
-                    drug_details_id: drugId,
-                    pharmacy: price.pharmacy,
-                    price: price.price,
-                    program_id: 6,
-                    recommended_price: 0.0,
-                    rank: price.rank,
+                    average_price : 0.0,
+                    createdat : DateFunction(),
+                    difference : 0.0,
+                    lowest_market_price : 0.0,
+                    drug_details_id : drugId,
+                    pharmacy : price.pharmacy,
+                    price : price.price,
+                    program_id : 6,
+                    recommended_price : 0.0,
+                    rank:price.rank,
                 };
 
                 // console.log("pricingData"+pricingData);
@@ -145,15 +143,25 @@ async function getGoodRxPrices(url, options, drugId, query, values, client) {
                     })
                     .catch((error) => console.log(error));
             });
+
+
+            var query3 = 'UPDATE shuffle_drugs SET goodrx_flag = \'completed\' WHERE request_id = $1';
+            values = [drugId];
+            await client.query(query3, values)
+                .then(() => {
+                    console.log('Updated shuffle_drugs' + drugId);
+                }).catch((error) => console.log(error));
+
+
         }
-    }).catch(function (error) {
+    }).catch(function(error) {
         console.log("Failure: " + drugId);
         console.log("URL: " + url)
         return "ERROR";
     })
 }
 
-exports.handler = async function (event) {
+exports.handler = async function(event, context) {
     var drugId = "";
     var url = "";
     var query2 = "";
@@ -168,11 +176,9 @@ exports.handler = async function (event) {
 
     let drugList = [];
 
-    var response = await client.query("SELECT drug_id FROM shuffle_drugs where flag = 'pending' and region = '" + reg + "';");
+    var response = await client.query("SELECT request_id FROM shuffle_drugs where goodrx_flag = 'pending' and region = '" + reg + "';");
     for (var i = 0; i < response.rows.length; i++) {
-        for (var j = 0; j < response.rows[i].drug_id.length; j++) {
-            drugList.push(response.rows[i].drug_id[j]);
-        }
+        drugList.push(response.rows[i].request_id);
     }
 
     var a = 0;
@@ -185,7 +191,7 @@ exports.handler = async function (event) {
         // console.log(drugList[k]);
         var req = await client.query("SELECT * FROM drug_request where program_id = 6 and good_rx_id is not null and drug_name is not null and latitude is not null and longitude is not null and quantity is not null and drug_id :: int = " + drugList[k]);
         // console.log(req.rows.length);
-        if (req.rows.length >= 1) {
+        if(req.rows.length >= 1) {
             drugId = req.rows[0].drug_id;
             // console.log("CHECKING:::" + drugId);
             var drugName = req.rows[0].drug_name;
@@ -209,7 +215,7 @@ exports.handler = async function (event) {
                 }
             };
 
-            if (priceCount % 30 === 0) {
+            if ((priceCount + 1) % 30 === 0) {
                 console.log("About to be blocked, waiting...")
                 await sleep(60000);
                 console.log("Waited 1min")
@@ -224,6 +230,9 @@ exports.handler = async function (event) {
             } catch (error) {
                 console.log(error);
             }
+            if (context.getRemainingTimeInMillis() < 30000) {
+                process.exit(0);
+            }
         }
 
         // var query3 = 'SELECT * FROM public_price WHERE program_id = 6';
@@ -231,6 +240,5 @@ exports.handler = async function (event) {
         //     console.log(response.rows.length)
         // }).catch((error) => console.log(error));
         // }
-    }
-    console.log(priceCount);
+    } console.log(priceCount);
 }
