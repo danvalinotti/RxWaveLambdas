@@ -1,12 +1,19 @@
-const rp = require('request-promise');
+// PRODUCTION IMPORTS
+const rp = require('/opt/node_modules/request-promise');
 const {
     Client
-} = require('pg');
+} = require('/opt/node_modules/pg');
+
+// DEV IMPORTS
+// const rp = require('request-promise');
+// const {
+//     Client
+// } = require('pg');
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
 let reg = process.env.REGION || "virginia";
-
-console.log(db_host);
-const connectionString = db_host;
+const client = new Client({
+    connectionString: db_host
+});
 
 function comparePrices(a, b) {
     if (a.lowestPrice === null) return 1;
@@ -27,9 +34,6 @@ function DateFunction() {
 }
 
 let DrugId = "";
-const client = new Client({
-    connectionString: connectionString
-});
 client.connect();
 let listDrugs = [];
 let pricingData1 = {
@@ -99,14 +103,24 @@ async function handler(event, context) {
                 await rp(options).then(async function (response) {
                     let jsondata1 = response;
                     let CVSPrice = {};
+                    CVSPrice.price = null;
+                    CVSPrice.pharmacy = null;
                     CVSPrice.rank = 0;
                     let WalmartPrice = {};
+                    WalmartPrice.price = null;
+                    WalmartPrice.pharmacy = null;
                     WalmartPrice.rank = 0;
                     let WalgreenPrice = {};
+                    WalgreenPrice.price = null;
+                    WalgreenPrice.pharmacy = null;
                     WalgreenPrice.rank = 0;
                     let KrogerPrice = {};
+                    KrogerPrice.price = null;
+                    KrogerPrice.pharmacy = null;
                     KrogerPrice.rank = 0;
                     let OtherPrice = {};
+                    OtherPrice.price = null;
+                    OtherPrice.pharmacy = null;
                     OtherPrice.rank = 0;
 
                     const otherPrices = [];
@@ -258,13 +272,25 @@ async function handler(event, context) {
                 }).catch(function (err) {
                     console.log(err);
                 });
-            } catch (e) {}
+            } catch (e) {
+                let query3 = 'UPDATE shuffle_drugs SET insiderx_flag = \'failed\' WHERE request_id = $1';
+                values = [DrugId];
+                await client.query(query3, values)
+                    .then(() => {
+                        console.log('Updated FAILED shuffle_drugs' + DrugId);
+                    }).catch((error) => console.log(error));
+
+                if (context && context.getRemainingTimeInMillis() < 30000) {
+                    process.exit();
+                }
+            }
 
         } else {
             console.log("fault drugs" + k + "drug-id" + DrugId)
         }
     }
-    console.log("good drugs:" + a + "drugid:" + DrugId)
+    console.log("good drugs:" + a + "drugid:" + DrugId);
+    process.exit(0);
 }
 
 exports.myhandler = handler;

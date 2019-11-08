@@ -1,21 +1,27 @@
-//well rx
-var rp = require('/opt/node_modules/request-promise');
-const {
-    Pool,
-    Client
-} = require('/opt/node_modules/pg');
-const request = require("request");
-var db_host = process.env.DB_HOST;
-var reg = process.env.REGION
-// const connectionString = 'postgresql://postgres:secret@10.80.1.121:5432/apid'
-const connectionString = db_host;
+// PRODUCTION IMPORTS
+// const rp = require('/opt/node_modules/request-promise');
+// const {Client} = require('/opt/node_modules/pg');
 
+// DEV IMPORTS
+const rp = require('request-promise');
+const {
+    Client
+} = require('pg');
+let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
+let reg = process.env.REGION || "virginia";
+const client = new Client({
+    connectionString: db_host
+});
+client.connect();
+
+/**
+ * @return {string}
+ */
 function DateFunction() {
-    var today = new Date();
-    var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    var dateTime = date + ' ' + time;
-    return dateTime;
+    let today = new Date();
+    let date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+    let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    return date + ' ' + time;
 }
 
 function comparePrices(a, b) {
@@ -25,14 +31,9 @@ function comparePrices(a, b) {
     if (b.price >= a.price) return -1;
 }
 
-var DrugId = ""
-const client = new Client({
-    connectionString: connectionString
-})
-client.connect()
-var listDrugs = [];
+let DrugId = "";
+let listDrugs = [];
 let pricingData1 = {
-    //id : "",
     average_price: 0,
     createdat: DateFunction(),
     difference: 0,
@@ -42,39 +43,32 @@ let pricingData1 = {
     price: 0,
     program_id: 2,
     recommended_price: 0,
-}
+};
 
-//let results =""
-let url1 = ""
-let url2 = "";
-let data = []
-var len = 0;
-var wrxbody = {}
-var query2 = ""
-var values = ""
-exports.myhandler = async function (event, context) {
-    var res1 = await client.query("SELECT request_id FROM shuffle_drugs where wellrx_flag = 'pending' and region = '" + reg + "'");
-    for (var i = 0; i < res1.rows.length; i++) {
-        listDrugs.push(res1.rows[i].request_id);
+let len = 0;
+let wrxbody = {};
+let query2 = "";
+let values = "";
+
+async function handler(event, context) {
+    let res1 = await client.query("SELECT request_id FROM shuffle_drugs where wellrx_flag = 'pending' and region = '" + reg + "'");
+    for (let i = 0; i < res1.rows.length; i++) {
+        listDrugs.push(res1.rows[i]["request_id"]);
     }
-    var a = 0;
+    let a = 0;
     len = listDrugs.length;
     console.log(listDrugs);
-    for (var k = 0; k < len; k++) {
-        var drugUrlList = await client.query("SELECT * FROM drug_request where program_id = 2 and drug_name is not null and latitude is not null and longitude is not null and quantity is not null and drug_id :: int = " + listDrugs[k]);
-        //console.log("oooooooooo"+drugUrlList.rows[0])
+    for (let k = 0; k < len; k++) {
+        let drugUrlList = await client.query("SELECT * FROM drug_request where program_id = 2 and drug_name is not null and latitude is not null and longitude is not null and quantity is not null and drug_id :: int = " + listDrugs[k]);
 
-
-        if (drugUrlList.rows.length != 0) {
-            //console.log("********************"+a);
-
-            DrugId = parseInt(drugUrlList.rows[0].drug_id);
-            var dname = drugUrlList.rows[0].drug_name
-            var dquantity = drugUrlList.rows[0].quantity
-            var dgsn = drugUrlList.rows[0].gsn
-            var lat = drugUrlList.rows[0].latitude
-            var lng = drugUrlList.rows[0].longitude
-            var brand = drugUrlList.rows[0].brand_indicator
+        if (drugUrlList.rows.length !== 0) {
+            DrugId = parseInt(drugUrlList.rows[0]["drug_id"]);
+            let dname = drugUrlList.rows[0].drug_name;
+            let dquantity = drugUrlList.rows[0].quantity;
+            let dgsn = drugUrlList.rows[0]["gsn"];
+            let lat = drugUrlList.rows[0].latitude;
+            let lng = drugUrlList.rows[0].longitude;
+            let brand = drugUrlList.rows[0]["brand_indicator"];
 
             wrxbody = {
                 "GSN": dgsn,
@@ -86,45 +80,44 @@ exports.myhandler = async function (event, context) {
                 "bReference": dname,
                 "ncpdps": "null",
                 "BN": dname
-            }
+            };
 
-            var options = {
+            let options = {
                 method: "post",
                 body: wrxbody,
                 json: true,
                 url: "https://www.wellrx.com/prescriptions/get-specific-drug",
                 headers: {
-                    "Referer": "https://www.wellrx.com/prescriptions/" + encodeURI(wrxbody.drugname) + "/08823",
+                    "Referer": "https://www.wellrx.com/prescriptions/" + encodeURI(wrxbody["drugname"]) + "/08823",
                     "Cookie": "ASP.NET_SessionId=hhwdg4zuhanzhvjbolrt43nl; __RequestVerificationToken=0dDfwZUlbQb4Mx3YjklcUV7bsEtr1hDoB-1t-b0F0k8olH2In-PRv07otVdGMVQMOeFEvd0EjIbfUYwmuYqzqql4-841; b1pi=!YcqCmwW1QEAHZ+EvLnpW7/Jj8QPM13OWFfo2ARrP6I6T4awkdPoTDp8HQ9YJSNx6YfdGFUS2UrlCIW4=; _ga=GA1.2.924180074.1565322424; _gid=GA1.2.1254852102.1565322424; _gcl_au=1.1.2015609251.1565322426; _fbp=fb.1.1565322426258.1245358800; wrxBannerID=4; _gat=1",
                     "X-Requested-With": "XMLHttpRequest",
                     "Accept": "application/json"
                 }
-            }
+            };
             try {
 
                 await rp(options).then(async function (response) {
-                    var jsondata1 = response;
-                    var DataDrugs = jsondata1.Drugs;
+                    let DataDrugs = response["Drugs"];
 
-                    if (DataDrugs != undefined && DataDrugs.length > 0) {
+                    if (DataDrugs !== undefined && DataDrugs.length > 0) {
                         a++;
-                        var CVSPrice = {};
+                        let CVSPrice = {};
                         CVSPrice.price = null;
                         CVSPrice.pharmacy = null;
                         CVSPrice.rank = 0;
-                        var WalmartPrice = {};
+                        let WalmartPrice = {};
                         WalmartPrice.price = null;
                         WalmartPrice.pharmacy = null;
                         WalmartPrice.rank = 0;
-                        var WalgreenPrice = {};
+                        let WalgreenPrice = {};
                         WalgreenPrice.price = null;
                         WalgreenPrice.pharmacy = null;
                         WalgreenPrice.rank = 0;
-                        var KrogerPrice = {};
+                        let KrogerPrice = {};
                         KrogerPrice.price = null;
                         KrogerPrice.pharmacy = null;
                         KrogerPrice.rank = 0;
-                        var OtherPrice = {};
+                        let OtherPrice = {};
                         OtherPrice.price = null;
                         OtherPrice.pharmacy = null;
                         OtherPrice.rank = 0;
@@ -132,44 +125,43 @@ exports.myhandler = async function (event, context) {
                         DataDrugs.forEach(function (value) {
                             if (value != null) {
 
-                                if (value.PharmacyName.toUpperCase().includes("CVS")) {
+                                if (value["PharmacyName"].toUpperCase().includes("CVS")) {
 
-                                    if (CVSPrice.price == null || CVSPrice.price > parseFloat(value.Price)) {
-                                        CVSPrice.price = parseFloat(value.Price);
-                                        CVSPrice.pharmacy = value.PharmacyName;
+                                    if (CVSPrice.price == null || CVSPrice.price > parseFloat(value["Price"])) {
+                                        CVSPrice.price = parseFloat(value["Price"]);
+                                        CVSPrice.pharmacy = value["PharmacyName"];
                                     }
 
-                                } else if (value.PharmacyName.toUpperCase().includes("WALMART")) {
-                                    if (WalmartPrice.price == null || WalmartPrice.price > parseFloat(value.Price)) {
-                                        WalmartPrice.price = parseFloat(value.Price);
-                                        WalmartPrice.pharmacy = value.PharmacyName;
+                                } else if (value["PharmacyName"].toUpperCase().includes("WALMART")) {
+                                    if (WalmartPrice.price == null || WalmartPrice.price > parseFloat(value["Price"])) {
+                                        WalmartPrice.price = parseFloat(value["Price"]);
+                                        WalmartPrice.pharmacy = value["PharmacyName"];
                                     }
 
-                                } else if (value.PharmacyName.toUpperCase().includes("WALGREENS")) {
-                                    if (WalgreenPrice.price == null || WalgreenPrice.price > parseFloat(value.Price)) {
-                                        WalgreenPrice.price = parseFloat(value.Price);
-                                        WalgreenPrice.pharmacy = value.PharmacyName;
+                                } else if (value["PharmacyName"].toUpperCase().includes("WALGREENS")) {
+                                    if (WalgreenPrice.price == null || WalgreenPrice.price > parseFloat(value["Price"])) {
+                                        WalgreenPrice.price = parseFloat(value["Price"]);
+                                        WalgreenPrice.pharmacy = value["PharmacyName"];
                                     }
 
-                                } else if (value.PharmacyName.toUpperCase().includes("KROGER")) {
-                                    if (KrogerPrice.price == null || KrogerPrice.price > parseFloat(value.Price)) {
-                                        KrogerPrice.price = parseFloat(value.Price);
-                                        KrogerPrice.pharmacy = value.PharmacyName;
+                                } else if (value["PharmacyName"].toUpperCase().includes("KROGER")) {
+                                    if (KrogerPrice.price == null || KrogerPrice.price > parseFloat(value["Price"])) {
+                                        KrogerPrice.price = parseFloat(value["Price"]);
+                                        KrogerPrice.pharmacy = value["PharmacyName"];
                                     }
 
                                 } else {
-                                    if (OtherPrice.price == null || OtherPrice.price > parseFloat(value.Price)) {
-                                        OtherPrice.price = parseFloat(value.Price);
-                                        OtherPrice.pharmacy = value.PharmacyName;
+                                    if (OtherPrice.price == null || OtherPrice.price > parseFloat(value["Price"])) {
+                                        OtherPrice.price = parseFloat(value["Price"]);
+                                        OtherPrice.pharmacy = value["PharmacyName"];
                                     }
 
                                 }
 
                             }
                         });
-                        var pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, OtherPrice, KrogerPrice];
-                        console.log(pricesArr)
-                        pricesArr.sort(comparePrices)
+                        let pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, OtherPrice, KrogerPrice];
+                        pricesArr.sort(comparePrices);
 
                         pricesArr[0].rank = 0;
                         pricesArr[1].rank = 1;
@@ -177,48 +169,55 @@ exports.myhandler = async function (event, context) {
                         pricesArr[3].rank = 3;
                         pricesArr[4].rank = 4;
 
-                        console.log(pricesArr)
-                        pricesArr.forEach(async function (price) {
+                        for (const price of pricesArr) {
                             pricingData1.price = price.price;
                             pricingData1.pharmacy = price.pharmacy;
                             pricingData1.rank = price.rank;
                             query2 = 'INSERT INTO public_price(average_price, createdat, difference, drug_details_id, lowest_market_price, pharmacy, price, program_id, recommended_price,rank, unc_price) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *';
                             values = [pricingData1.average_price, pricingData1.createdat, pricingData1.difference, DrugId, pricingData1.lowest_market_price, pricingData1.pharmacy, pricingData1.price, pricingData1.program_id, pricingData1.recommended_price, pricingData1.rank, null];
                             await client.query(query2, values)
-                                .then(res => {})
                                 .catch(e => {
-                                    console.log("errr")
+                                    console.log(e)
                                 })
-                        });
+                        }
 
-                        var query3 = 'UPDATE shuffle_drugs SET wellrx_flag = \'completed\' WHERE request_id = $1';
+                        DrugId = drugUrlList.rows[0]["drug_id"];
+                        let query3 = 'UPDATE shuffle_drugs SET wellrx_flag = \'completed\' WHERE request_id = $1';
                         values = [DrugId];
                         await client.query(query3, values)
                             .then(() => {
                                 console.log('Updated shuffle_drugs' + DrugId);
                             }).catch((error) => console.log(error));
 
-                        if (context.getRemainingTimeInMillis() < 30000) {
+                        if (context && context.getRemainingTimeInMillis() < 30000) {
                             process.exit();
                         }
 
                     } else {
                         console.log("else" + DrugId)
                     }
-                    //console.log("body"+JSON.stringify(body));
-
-
-                }).catch(function (err) {
+                }).catch(async function (err) {
                     console.log(err);
-                    // Crawling failed or Cheerio choked...
                 });
 
-            } catch (e) {}
+            } catch (e) {
+                DrugId = drugUrlList.rows[0]["drug_id"];
+                let query3 = 'UPDATE shuffle_drugs SET wellrx_flag = \'completed\' WHERE request_id = $1';
+                values = [DrugId];
+                await client.query(query3, values)
+                    .then(() => {
+                        console.log('Updated shuffle_drugs' + DrugId);
+                    }).catch((error) => console.log(error));
 
-        } else {
-            continue
+                if (context && context.getRemainingTimeInMillis() < 30000) {
+                    process.exit();
+                }
+            }
         }
     }
-    // console.log("good drugs:"+a+"drugid:"+DrugId)
+
+    process.exit(0);
 }
-//exports.myhandler()
+
+exports.myhandler = handler;
+module.exports = handler;
