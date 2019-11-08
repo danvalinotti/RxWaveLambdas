@@ -60,6 +60,7 @@ async function handler(event, context) {
     console.log(listDrugs);
 
     for (let k = 0; k < len; k++) {
+        // noinspection SyntaxError
         let drugUrlList = await client.query("SELECT * FROM drug_request where program_id = 4 and drug_id :: int =" + listDrugs[k]);
         if (drugUrlList.rows !== 0) {
             url = "https://webapi.singlecare.com/api/pbm/tiered-pricing/" + drugUrlList.rows[0].ndc + "?qty=" + drugUrlList.rows[0].quantity + "&zipCode=" + drugUrlList.rows[0]["zipcode"];
