@@ -45,7 +45,7 @@ function shuffle(arr, options) {
     }
 
     return collection;
-};
+}
 client.connect();
 let data = []
 exports.handler = (event, context,callback) => {

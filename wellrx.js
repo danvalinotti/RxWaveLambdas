@@ -211,7 +211,7 @@ exports.myhandler = async function (event, context) {
                 }).catch(function (err) {
                     console.log(err);
                     // Crawling failed or Cheerio choked...
-                });;
+                });
 
             } catch (e) {}
 
