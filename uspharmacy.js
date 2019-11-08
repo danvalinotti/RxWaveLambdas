@@ -1,8 +1,8 @@
-var request = require("/opt/node_modules/request");
-var rp = require('/opt/node_modules/request-promise');
-const {Pool, Client} = require('/opt/node_modules/pg');
-var db_host = process.env.DB_HOST;
-var reg = process.env.REGION;
+var request = require("request");
+var rp = require('request-promise');
+const {Pool, Client} = require('pg');
+var db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
+var reg = process.env.REGION || "california";
 
 // const connectionString = 'postgresql://postgres:secret@10.80.1.121:5432/apid'
 const connectionString = db_host;
@@ -44,7 +44,7 @@ let pricingData1 = {
 let url = ""
 let data = []
 var len=0;
-exports.myhandler = async function (event, context){
+async function handler(event, context){
     console.log(typeof reg)
     var res1 = await client.query("SELECT request_id FROM shuffle_drugs where usp_flag = 'pending' and region = '"+reg+"'");
     for(var i=0; i< res1.rows.length ; i++){
@@ -56,8 +56,8 @@ exports.myhandler = async function (event, context){
     for(let k=0; k < len; k++){
         //console.log("listdrugs2:"+k)
         //if(k<=len){
-        var drugUrlList = await client.query("SELECT * FROM drug_request where program_id = 1 and zipcode is not null and ndc is not null and quantity is not null and brand_indicator is not null and drug_id :: int ="+listDrugs[k]);
-        if(drugUrlList.rows != 0){
+        let drugUrlList = await client.query("SELECT * FROM drug_request where program_id = 1 and zipcode is not null and ndc is not null and quantity is not null and brand_indicator is not null and drug_id :: int ="+listDrugs[k]);
+        if(drugUrlList.rows !== 0){
             url = "https://api.uspharmacycard.com/drug/price/147/none/"+drugUrlList.rows[0].zipcode+"/"+drugUrlList.rows[0].ndc+"/"+encodeURIComponent(drugUrlList.rows[0].drug_name)+"/"+drugUrlList.rows[0].brand_indicator+"/"+drugUrlList.rows[0].quantity+"/8"
 
             await rp(url)
@@ -84,38 +84,38 @@ exports.myhandler = async function (event, context){
                     OtherPrice.price =  null ;
                     OtherPrice.pharmacy =null;
                     OtherPrice.rank = 0;
-                    jsondata.priceList.forEach(function(value){
+                    jsondata["priceList"].forEach(function(value){
                         if(value!= null){
-                            var valPrice = parseFloat(value.formattedDiscountPrice.replace('$',''))
-                            if(value.pharmacy.pharmacyName.toUpperCase().includes("CVS")){
+                            let valPrice = value["discountPrice"];
+                            if(value.pharmacy["pharmacyName"].toUpperCase().includes("CVS")){
 
                                 if(CVSPrice.price == null || CVSPrice.price > valPrice){
                                     CVSPrice.price =  valPrice;
-                                    CVSPrice.pharmacy=value.pharmacy.pharmacyName;
+                                    CVSPrice.pharmacy=value.pharmacy["pharmacyName"];
                                 }
 
-                            }else if(value.pharmacy.pharmacyName.toUpperCase().includes("WALMART")){
+                            }else if(value.pharmacy["pharmacyName"].toUpperCase().includes("WALMART")){
                                 if(WalmartPrice.price == null ||WalmartPrice.price > valPrice){
                                     WalmartPrice.price =  valPrice;
-                                    WalmartPrice.pharmacy=value.pharmacy.pharmacyName;
+                                    WalmartPrice.pharmacy=value.pharmacy["pharmacyName"];
                                 }
 
-                            }else if(value.pharmacy.pharmacyName.toUpperCase().includes("WALGREENS")){
+                            }else if(value.pharmacy["pharmacyName"].toUpperCase().includes("WALGREENS")){
                                 if(WalgreenPrice.price == null ||WalgreenPrice.price > valPrice){
                                     WalgreenPrice.price = valPrice;
-                                    WalgreenPrice.pharmacy=value.pharmacy.pharmacyName;
+                                    WalgreenPrice.pharmacy=value.pharmacy["pharmacyName"];
                                 }
 
-                            }else if(value.pharmacy.pharmacyName.toUpperCase().includes("KROGER")){
+                            }else if(value.pharmacy["pharmacyName"].toUpperCase().includes("KROGER")){
                                 if(KrogerPrice.price == null ||KrogerPrice.price > valPrice){
                                     KrogerPrice.price =  valPrice;
-                                    KrogerPrice.pharmacy=value.pharmacy.pharmacyName;
+                                    KrogerPrice.pharmacy=value.pharmacy["pharmacyName"];
                                 }
 
                             }else {
                                 if(OtherPrice.price == null || OtherPrice.price > valPrice){
                                     OtherPrice.price =  valPrice;
-                                    OtherPrice.pharmacy=value.pharmacy.pharmacyName;
+                                    OtherPrice.pharmacy=value.pharmacy["pharmacyName"];
                                 }
 
                             }
@@ -123,8 +123,8 @@ exports.myhandler = async function (event, context){
                         }
                     });
                     var pricesArr = [WalgreenPrice,WalmartPrice,CVSPrice,OtherPrice, KrogerPrice];
-                    console.log(pricesArr)
-                    pricesArr.sort(comparePrices)
+                    console.log(pricesArr);
+                    pricesArr.sort(comparePrices);
 
                     pricesArr[0].rank = 0;
                     pricesArr[1].rank = 1;
@@ -132,7 +132,7 @@ exports.myhandler = async function (event, context){
                     pricesArr[3].rank = 3;
                     pricesArr[4].rank = 4;
 
-                    pricesArr.forEach(async function (price){
+                    for (const price of pricesArr) {
                         pricingData1.price = price.price;
                         pricingData1.pharmacy = price.pharmacy;
                         pricingData1.rank = price.rank;
@@ -144,25 +144,36 @@ exports.myhandler = async function (event, context){
                             .then(res => {
                             })
                             .catch(e => {console.log(e)})
-                    });
+                    }
 
-                    DrugId = drugUrlList.rows[0].drug_id;
+                    DrugId = drugUrlList.rows[0]["drug_id"];
                     var query3 = 'UPDATE shuffle_drugs SET usp_flag = \'completed\' WHERE request_id = $1';
-                    values = [DrugId];
+                    let values = [DrugId];
                     await client.query(query3, values)
                         .then(() => {
                             console.log('Updated shuffle_drugs' + DrugId);
                         }).catch((error) => console.log(error));
 
-                    if (context.getRemainingTimeInMillis() < 30000) {
+                    if (context && context.getRemainingTimeInMillis() < 30000) {
                         process.exit();
                     }
 
                 })
-                .catch(function (err) {
-                    console.log(err)
+                .catch(async function (err) {
+                    console.log(err.error);
+                    DrugId = drugUrlList.rows[0]["drug_id"];
+                    var query3 = 'UPDATE shuffle_drugs SET usp_flag = \'failed\' WHERE request_id = $1';
+                    let values = [DrugId];
+                    await client.query(query3, values)
+                        .then(() => {
+                            console.log('Updated FAILED shuffle_drugs ' + DrugId);
+                        }).catch((error) => console.log(error));
                 });
-        }else{continue}
+        }
     }
+
+    process.exit();
 }
-// //exports.myhandler();
+
+exports.myhandler = handler;
+module.exports = handler;
