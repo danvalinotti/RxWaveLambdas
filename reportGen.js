@@ -1,12 +1,21 @@
-const AWS = require('aws-sdk');
+// PRODUCTION IMPORTS
+// const xl = require('/opt/node_modules/excel4node');
+// const {
+//     Client
+// } = require('/opt/node_modules/pg');
+
+// DEV IMPORTS
 const xl = require('excel4node');
-// const report_query = require('./report_query');
 const {
     Client
 } = require('pg');
+const AWS = require('aws-sdk');
+const path = require('path');
+const util = require('util');
 const fs = require('fs');
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
 let bucket = process.env.S3_BUCKET || "rxwave-reports";
+
 // let key = process.env.S3_KEY;
 
 const client = new Client({
@@ -20,25 +29,23 @@ function round(num) {
 }
 
 // Upload excel to S3 bucket
-function upload(file, key) {
-    const buffer = Buffer.from(file, 'binary');
+async function upload(filename) {
+    console.log("Uploading to s3....");
+    let date = new Date();
+    let file = fs.readFileSync(filename);
+    // const buffer = Buffer.from(file, 'binary');
     let s3 = new AWS.S3();
     const params = {
         Bucket: bucket,
-        Key: key,
-        Body: buffer,
+        Key: `report-${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`,
+        Body: file,
         ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
     };
 
-    console.log("Uploading to s3....");
-    s3.upload(params, function(err, data) {
-        if (err) {
-            console.log(err);
-            throw err;
-        } else {
-            console.log(`Uploaded report to S3 - ${data["location"]}`);
-        }
-    });
+    console.log(params);
+
+    // console.log("Uploading to s3....");
+    return s3.putObject(params).promise();
 }
 
 async function handler() {
@@ -64,7 +71,7 @@ async function handler() {
     let reportId = latest.rows[0]["id"];
 
     for (let zip of zips) {
-        console.log(`Getting prices for zip code ${zip}...`);
+        // console.log(`Getting prices for zip code ${zip}...`);
 
         try {
             // Query latest report prices for each zip code
@@ -179,7 +186,7 @@ async function handler() {
                 .string('Difference')
                 .style(style);
 
-            console.log(`Writing prices for ${zip}...`);
+            // console.log(`Writing prices for ${zip}...`);
             for (let i = 0; i < data.rows.length; i++) {
                 // Writes price properties to each row
                 ws.cell(i + 2, 1)
@@ -236,27 +243,46 @@ async function handler() {
         }
     }
 
+    try {
 
-    // Create file name (node Date gives month from 0-11, hence + 1)
-    let date = new Date();
-    let filename = `report-${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+        // Create file name (node Date gives month from 0-11, hence + 1)
+        let date = new Date();
+        let filename = `report-${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+        // let filename = `report-${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+        let s3 = new AWS.S3();
 
-    wb.write(filename, function(err, data) {
-        if (err) {
-            console.log(err);
-        } else {
+        console.log(path.resolve(`tmp/${filename}`));
+        // wb.writeBuff = util.promisify(wb.writeToBuffer);
+        console.log('here');
+        wb.writeToBuffer().then((buffer) => {
+
+            console.log("Wrote to buffer");
             console.log("wrote excel file");
-        }
-    });
+            let file = fs.readFileSync(filename);
+            // const buffer = Buffer.from(file, 'binary');
+            const params = {
+                Bucket: bucket,
+                Key: `report-${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`,
+                Body: buffer
+                // ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+            };
 
-    await fs.readFile(filename, (err, data) => {
-        if (err) {
-            throw err;
-        } else {
-            upload(data, filename);
-            process.exit();
-        }
-    });
+            console.log(params);
+            console.log("Uploading to S3...");
+            s3.upload(params, function (err, data) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(data);
+                }
+                // process.exit();
+            });
+        })
+    } catch (error) {
+        console.log(error);
+    }
+
+    // process.exit();
 
 }
 
@@ -560,5 +586,4 @@ const report_query = "select g.* from (select distinct on (f.drug_id, f.rank) f.
 
 // Lambda handler
 exports.myhandler = handler;
-// Node.js handler
 module.exports = handler;
