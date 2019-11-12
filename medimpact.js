@@ -1,12 +1,12 @@
 // PRODUCTION IMPORTS
-// const rp = require('/opt/node_modules/request-promise');
-// const {Client} = require('/opt/node_modules/pg');
+const rp = require('/opt/node_modules/request-promise');
+const {Client} = require('/opt/node_modules/pg');
 
 // DEV IMPORTS
-const rp = require('request-promise');
-const {
-    Client
-} = require('pg');
+// const rp = require('request-promise');
+// const {
+//     Client
+// } = require('pg');
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
 let reg = process.env.REGION || "virginia";
 const client = new Client({
@@ -63,7 +63,7 @@ async function handler(event, context) {
             url = "https://rxsavings.medimpact.com/web/rxcard/home?p_p_id=com_cashcard_portal_portlet_CashCardPortlet_INSTANCE_wVwgc3hAI7xv&p_p_lifecycle=2&p_p_state=normal&p_p_mode=view" +
                 "&p_p_cacheability=cacheLevelPage&_com_cashcard_portal_portlet_CashCardPortlet_INSTANCE_wVwgc3hAI7xv_cmd=get_drug_detail" +
                 "&_com_cashcard_portal_portlet_CashCardPortlet_INSTANCE_wVwgc3hAI7xv_quantity=" + drugUrlList.rows[0].quantity +
-                "&_com_cashcard_portal_portlet_CashCardPortlet_INSTANCE_wVwgc3hAI7xv_gsn=" + drugUrlList.rows[0]["gsn"] +
+                "&_com_cashcard_portal_portlet_CashCardPortlet_INSTANCE_wVwgc3hAI7xv_drugName=" + drugUrlList.rows[0].drug_name.toUpperCase() +
                 "&_com_cashcard_portal_portlet_CashCardPortlet_INSTANCE_wVwgc3hAI7xv_brandGenericFlag=" + drugUrlList.rows[0]["brand_indicator"] +
                 "&_com_cashcard_portal_portlet_CashCardPortlet_INSTANCE_wVwgc3hAI7xv_lat=" + drugUrlList.rows[0].latitude +
                 "&_com_cashcard_portal_portlet_CashCardPortlet_INSTANCE_wVwgc3hAI7xv_lng=" + drugUrlList.rows[0].longitude +
@@ -191,4 +191,4 @@ async function handler(event, context) {
 }
 
 exports.myhandler = handler;
-module.exports = handler;
+// module.exports = handler;

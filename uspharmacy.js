@@ -1,12 +1,12 @@
 // PRODUCTION IMPORTS
-// const rp = require('/opt/node_modules/request-promise');
-// const {Client} = require('/opt/node_modules/pg');
+const rp = require('/opt/node_modules/request-promise');
+const {Client} = require('/opt/node_modules/pg');
 
 // DEV IMPORTS
-const rp = require('request-promise');
-const {
-    Client
-} = require('pg');
+// const rp = require('request-promise');
+// const {
+//     Client
+// } = require('pg');
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
 let reg = process.env.REGION || "virginia";
 const client = new Client({
@@ -56,10 +56,11 @@ async function handler(event, context) {
     len = listDrugs.length;
 
     for (let k = 0; k < len; k++) {
-        let drugUrlList = await client.query("SELECT * FROM drug_request where program_id = 1 and zipcode is not null and ndc is not null and quantity is not null and brand_indicator is not null and drug_id :: int =" + listDrugs[k]);
+        let drugUrlList = await client.query("SELECT * FROM drug_request where program_id = 1 and zipcode is not null and ndc is not null and quantity is not null and brand_indicator is not null and drug_id :: int =" + listDrugs[k] + " order by drug_name");
         if (drugUrlList.rows !== 0) {
             url = "https://api.uspharmacycard.com/drug/price/147/none/" + drugUrlList.rows[0]["zipcode"] + "/" + drugUrlList.rows[0].ndc + "/" + encodeURIComponent(drugUrlList.rows[0].drug_name) + "/" + drugUrlList.rows[0]["brand_indicator"] + "/" + drugUrlList.rows[0].quantity + "/8";
 
+            console.log(url);
             try {
                 await rp(url)
                     .then(async function (response) {
@@ -84,9 +85,9 @@ async function handler(event, context) {
                         OtherPrice.price = null;
                         OtherPrice.pharmacy = null;
                         OtherPrice.rank = 0;
-                        jsondata["priceList"].forEach(function (value) {
+                        for (const value of jsondata["priceList"]) {
                             if (value != null) {
-                                let valPrice = parseFloat(value["formattedDiscountPrice"].replace('$', ''));
+                                let valPrice = value["discountPrice"];
                                 if (value.pharmacy["pharmacyName"].toUpperCase().includes("CVS")) {
 
                                     if (CVSPrice.price == null || CVSPrice.price > valPrice) {
@@ -120,8 +121,21 @@ async function handler(event, context) {
 
                                 }
 
+                            } else {
+                                // This occurs when a drug is not found on USPharmacy - the shuffle_drugs entry is set to failed
+                                DrugId = drugUrlList.rows[0]["drug_id"];
+                                let query3 = 'UPDATE shuffle_drugs SET usp_flag = \'failed\' WHERE request_id = $1';
+                                let values = [DrugId];
+                                await client.query(query3, values)
+                                    .then(() => {
+                                        console.log('Updated shuffle_drugs' + DrugId);
+                                    }).catch((error) => console.log(error));
+
+                                if (context && context.getRemainingTimeInMillis() < 30000) {
+                                    process.exit();
+                                }
                             }
-                        });
+                        }
                         let pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, OtherPrice, KrogerPrice];
                         pricesArr.sort(comparePrices);
 
@@ -150,7 +164,9 @@ async function handler(event, context) {
                         await client.query(query3, values)
                             .then(() => {
                                 console.log('Updated shuffle_drugs' + DrugId);
-                            }).catch((error) => console.log(error));
+                            }).catch((error) => {
+                                console.log(error)
+                            });
 
                         if (context && context.getRemainingTimeInMillis() < 30000) {
                             process.exit();
@@ -163,7 +179,7 @@ async function handler(event, context) {
             } catch (error) {
                 console.log(error);
                 DrugId = drugUrlList.rows[0]["drug_id"];
-                let query3 = 'UPDATE shuffle_drugs SET usp_flag = \'completed\' WHERE request_id = $1';
+                let query3 = 'UPDATE shuffle_drugs SET usp_flag = \'failed\' WHERE request_id = $1';
                 let values = [DrugId];
                 await client.query(query3, values)
                     .then(() => {
@@ -181,4 +197,4 @@ async function handler(event, context) {
 }
 
 exports.myhandler = handler;
-module.exports = handler;
+// module.exports = handler;

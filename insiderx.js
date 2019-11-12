@@ -294,4 +294,4 @@ async function handler(event, context) {
 }
 
 exports.myhandler = handler;
-module.exports = handler;
+// module.exports = handler;

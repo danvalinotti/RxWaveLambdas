@@ -1,12 +1,12 @@
 // PRODUCTION IMPORTS
-// const rp = require('/opt/node_modules/request-promise');
-// const {Client} = require('/opt/node_modules/pg');
+const rp = require('/opt/node_modules/request-promise');
+const {Client} = require('/opt/node_modules/pg');
 
 // DEV IMPORTS
-const rp = require('request-promise');
-const {
-    Client
-} = require('pg');
+// const rp = require('request-promise');
+// const {
+//     Client
+// } = require('pg');
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
 let reg = process.env.REGION || "virginia";
 const client = new Client({
@@ -63,12 +63,18 @@ async function handler(event, context) {
 
         if (drugUrlList.rows.length !== 0) {
             DrugId = parseInt(drugUrlList.rows[0]["drug_id"]);
-            let dname = drugUrlList.rows[0].drug_name;
+            let dname = drugUrlList.rows[0].drug_name.replace(/\//, '-');
             let dquantity = drugUrlList.rows[0].quantity;
             let dgsn = drugUrlList.rows[0]["gsn"];
             let lat = drugUrlList.rows[0].latitude;
             let lng = drugUrlList.rows[0].longitude;
             let brand = drugUrlList.rows[0]["brand_indicator"];
+
+            if (dgsn.length < 6) {
+                for (let i = 0; i < 6 - dgsn.length; i++) {
+                    dgsn = "0" + dgsn;
+                }
+            }
 
             wrxbody = {
                 "GSN": dgsn,
@@ -76,11 +82,13 @@ async function handler(event, context) {
                 "lng": lng,
                 "numdrugs": "1",
                 "quantity": dquantity,
-                "bgIndicator": brand,
+                "bgIndicator": brand[0],
                 "bReference": dname,
                 "ncpdps": "null",
                 "BN": dname
             };
+
+            console.log(JSON.stringify(wrxbody));
 
             let options = {
                 method: "post",
@@ -98,6 +106,7 @@ async function handler(event, context) {
 
                 await rp(options).then(async function (response) {
                     let DataDrugs = response["Drugs"];
+                    console.log(response);
 
                     if (DataDrugs !== undefined && DataDrugs.length > 0) {
                         a++;
@@ -220,4 +229,4 @@ async function handler(event, context) {
 }
 
 exports.myhandler = handler;
-module.exports = handler;
+// module.exports = handler;

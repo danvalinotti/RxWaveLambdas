@@ -1,11 +1,11 @@
 // PRODUCTION IMPORTS
-// const rp = require('/opt/node_modules/request-promise');
-// const {Client} = require('/opt/node_modules/pg');
+const rp = require('/opt/node_modules/request-promise');
+const {Client} = require('/opt/node_modules/pg');
 
 // DEV IMPORTS
-const {
-    Client
-} = require('pg');
+// const {
+//     Client
+// } = require('pg');
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
 const client = new Client({
     connectionString: db_host
@@ -110,4 +110,4 @@ const handler = (event, context, callback) => {
 };
 
 exports.handler = handler;
-module.exports = handler;
+// module.exports = handler;

@@ -1,12 +1,12 @@
 // PRODUCTION IMPORTS
-// const rp = require('/opt/node_modules/request-promise');
-// const {Client} = require('/opt/node_modules/pg');
+const rp = require('/opt/node_modules/request-promise');
+const {Client} = require('/opt/node_modules/pg');
 
 // DEV IMPORTS
-const rp = require('request-promise');
-const {
-    Client
-} = require('pg');
+// const rp = require('request-promise');
+// const {
+//     Client
+// } = require('pg');
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
 let reg = process.env.REGION || "virginia";
 const client = new Client({
@@ -186,4 +186,4 @@ async function handler(event, context) {
 }
 
 exports.myhandler = handler;
-module.exports = handler;
+// module.exports = handler;
