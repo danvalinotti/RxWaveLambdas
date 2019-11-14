@@ -3,7 +3,7 @@
 //     console.log("Done");
 // }).catch((error) => console.log(error));
 
-const handler = require('./reportGen');
+const handler = require('./goodrx');
 
 let promise = handler().then(() => {
     console.log("Promise resolved");
