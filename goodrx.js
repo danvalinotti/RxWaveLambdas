@@ -8,11 +8,47 @@ const {Client} = require('/opt/node_modules/pg');
 //     Client
 // } = require('pg');
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
-let reg = process.env.REGION || "virginia";
+let reg = process.env.REGION || "california";
 const client = new Client({
     connectionString: db_host
 });
 client.connect();
+
+let kroger_names = [
+    "KROGER AFFILIATES",
+    "BAKER'S",
+    "CITY MARKET",
+    "COPPS FOOD CENTER",
+    "DILLONS",
+    "FOOD4LESS",
+    "FRED MEYER",
+    "FRY'S",
+    "GENE MADDY",
+    "GERBES PHARMACY",
+    "HARRIS TEETER",
+    "JAY C",
+    "KING SOOPERS",
+    "KROGER",
+    "MARIANO'S",
+    "METRO MARKET",
+    "OWEN'S",
+    "PAYLESS",
+    "PICK 'N SAVE",
+    "QFC",
+    "RALPHS",
+    "SCOTT'S",
+    "SMITH'S",
+];
+
+function isKroger(pharmacy) {
+    for (let name of kroger_names) {
+        if (pharmacy.includes(name) || name.includes(pharmacy)) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /**
  * @return {string}
@@ -42,7 +78,7 @@ async function getGoodRxPrices(url, options, drugId, query, values, client) {
 
         if (data !== undefined) {
             let results = data.results;
-            console.log(results);
+            // console.log(results);
             let CVSPrice = {};
             CVSPrice.price = null;
             CVSPrice.pharmacy = null;
@@ -86,7 +122,8 @@ async function getGoodRxPrices(url, options, drugId, query, values, client) {
                             WalgreenPrice.pharmacy = value.pharmacy.name;
                         }
 
-                    } else if (value.pharmacy.name.toUpperCase().includes("KROGER")) {
+                    } else if (isKroger(value.pharmacy.name.toUpperCase())) {
+                        console.log("KROGER PHARMACY FOUND - " + value.pharmacy.name.toUpperCase());
                         if (KrogerPrice.price == null || KrogerPrice.price > parseFloat(value["prices"][0].price)) {
                             KrogerPrice.price = parseFloat(value["prices"][0].price);
                             KrogerPrice.pharmacy = value.pharmacy.name;
@@ -103,7 +140,7 @@ async function getGoodRxPrices(url, options, drugId, query, values, client) {
                 }
             });
             let pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, OtherPrice, KrogerPrice];
-            console.log(pricesArr);
+            // console.log(pricesArr);
             pricesArr.sort(comparePrices);
 
             pricesArr[0].rank = 0;

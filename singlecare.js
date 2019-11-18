@@ -21,6 +21,41 @@ function comparePrices(a, b) {
     if (b.price >= a.price) return -1;
 }
 
+let kroger_names = [
+    "KROGER AFFILIATES",
+    "BAKER'S",
+    "CITY MARKET",
+    "COPPS FOOD CENTER",
+    "DILLONS",
+    "FOOD4LESS",
+    "FRED MEYER",
+    "FRY'S",
+    "GENE MADDY",
+    "GERBES PHARMACY",
+    "HARRIS TEETER",
+    "JAY C",
+    "KING SOOPERS",
+    "KROGER",
+    "MARIANO'S",
+    "METRO MARKET",
+    "OWEN'S",
+    "PAYLESS",
+    "PICK 'N SAVE",
+    "QFC",
+    "RALPHS",
+    "SCOTT'S",
+    "SMITH'S",
+];
+
+function isKroger(pharmacy) {
+    for (let name of kroger_names) {
+        if (pharmacy.includes(name) || name.includes(pharmacy)) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /**
  * @return {string}
@@ -111,7 +146,7 @@ async function handler(event, context) {
                                         WalgreenPrice.pharmacy = value["Pharmacy"].Name;
                                     }
 
-                                } else if (value["Pharmacy"].Name.toUpperCase().includes("KROGER")) {
+                                } else if (isKroger(value["Pharmacy"].Name.toUpperCase())) {
                                     if (KrogerPrice.price == null || KrogerPrice.price > parseFloat(value["Prices"][0]["Price"])) {
                                         KrogerPrice.price = parseFloat(value["Prices"][0]["Price"]);
                                         KrogerPrice.pharmacy = value["Pharmacy"].Name;
