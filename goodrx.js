@@ -8,11 +8,47 @@ const {Client} = require('/opt/node_modules/pg');
 //     Client
 // } = require('pg');
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
-let reg = process.env.REGION || "virginia";
+let reg = process.env.REGION || "california";
 const client = new Client({
     connectionString: db_host
 });
 client.connect();
+
+let kroger_names = [
+    "KROGER AFFILIATES",
+    "BAKER'S",
+    "CITY MARKET",
+    "COPPS FOOD CENTER",
+    "DILLONS",
+    "FOOD4LESS",
+    "FRED MEYER",
+    "FRY'S",
+    "GENE MADDY",
+    "GERBES PHARMACY",
+    "HARRIS TEETER",
+    "JAY C",
+    "KING SOOPERS",
+    "KROGER",
+    "MARIANO'S",
+    "METRO MARKET",
+    "OWEN'S",
+    "PAYLESS",
+    "PICK 'N SAVE",
+    "QFC",
+    "RALPHS",
+    "SCOTT'S",
+    "SMITH'S",
+];
+
+function isKroger(pharmacy) {
+    for (let name of kroger_names) {
+        if (pharmacy.includes(name) || name.includes(pharmacy)) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /**
  * @return {string}
@@ -42,7 +78,7 @@ async function getGoodRxPrices(url, options, drugId, query, values, client) {
 
         if (data !== undefined) {
             let results = data.results;
-            console.log(results);
+            // console.log(results);
             let CVSPrice = {};
             CVSPrice.price = null;
             CVSPrice.pharmacy = null;
@@ -86,7 +122,8 @@ async function getGoodRxPrices(url, options, drugId, query, values, client) {
                             WalgreenPrice.pharmacy = value.pharmacy.name;
                         }
 
-                    } else if (value.pharmacy.name.toUpperCase().includes("KROGER")) {
+                    } else if (isKroger(value.pharmacy.name.toUpperCase())) {
+                        console.log("KROGER PHARMACY FOUND - " + value.pharmacy.name.toUpperCase());
                         if (KrogerPrice.price == null || KrogerPrice.price > parseFloat(value["prices"][0].price)) {
                             KrogerPrice.price = parseFloat(value["prices"][0].price);
                             KrogerPrice.pharmacy = value.pharmacy.name;
@@ -103,7 +140,7 @@ async function getGoodRxPrices(url, options, drugId, query, values, client) {
                 }
             });
             let pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, OtherPrice, KrogerPrice];
-            console.log(pricesArr);
+            // console.log(pricesArr);
             pricesArr.sort(comparePrices);
 
             pricesArr[0].rank = 0;
@@ -213,10 +250,12 @@ async function handler(event, context) {
                 method: 'GET',
                 json: true,
                 headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "*/*",
-                    "Connection": "keep-alive",
-                    "User-Agent": "PostmanRuntime/7.16.3"
+                    "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.87 Safari/537.36",
+                    "Content-Type":"application/json",
+                    "Accept":"*/*",
+                    "Connection":"keep-alive",
+                    "Cookie":"csrf_token=fe98f437e90b4d798574680b10487142; _pxhd=3029431ae7e9e099afa91d3c46a652ec1f8e2594d437eac053f9d3461839d9e5:6e1a5f20-ff1c-11e9-a55a-5d27e4ca1dac; myrx_exp_ab_variant=experiment; grx_unique_id=1cabceffcf8041b3882405d2c0f78ba7; c=; kw=; gclid=; ppa_exp_ab_variant=experiment; variantCookie=2; _pxvid=6e1a5f20-ff1c-11e9-a55a-5d27e4ca1dac; _ga=GA1.2.582319787.1572883324; _gid=GA1.2.795690922.1572883324; rsci_vid=bdd4752a-4d8b-ff9a-ae56-bb95c9ee40b7; cto_lwid=e3ea55d1-7366-4c08-bb46-68b4220cea95; _fbp=fb.1.1572883323932.209847031; __gads=ID=147bd9857967132f:T=1572883324:S=ALNI_MblLtrALre5ioKcEwnH3SDYtl3TnQ; ki_r=; _dc_gtm_UA-24914838-1=1; _gat_UA-24914838-1=1; _pxff_tm=1; ki_t=1572883327213%3B1572883327213%3B1572890257995%3B1%3B19; goodrx-v2=d63898ad263b0de82d9f0d380360950628e342945EU2x5f7quHYLluTi6EB7qG7TaxB7XJX4Sw4XnfiyturibtwO+QAte+2pKwtkOJJOU43mBdIf0HYn8qm2YmXz66VB2fcHydjc70nJqVVB3DAAk5euZ+2u76/36w+tyKdpSRrjGEq8XAdwcv3xbn93NZxL/a0R1+k5+vS6kbTorRHglx1aSXxb57DWWY+JZ2NnJ/OF3Ji+mqjv3yvUKWGhTYBd9yZG4FkOtl+oezGIxGRo7ZJ470SEU71s3gdG1OA0xnfSqcd5P+M13g4i5sVtl0PR0HmZZMSIIMNXzsBemKfa811nts1x18lJF/6kiIHyPfUbvKzk0gQQ3qlH3IkkV+P5sVxYSlpO/YWPpvi3fn8+nRFul6SRpCdfdVpZ80QmU3vbfAsCr5mlBKcWFKerAc=",
+                    "Upgrade-Insecure-Requests":1
                 }
             };
 

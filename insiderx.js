@@ -22,6 +22,42 @@ function comparePrices(a, b) {
     if (b.lowestPrice >= a.lowestPrice) return -1;
 }
 
+let kroger_names = [
+    "KROGER AFFILIATES",
+    "BAKER'S",
+    "CITY MARKET",
+    "COPPS FOOD CENTER",
+    "DILLONS",
+    "FOOD4LESS",
+    "FRED MEYER",
+    "FRY'S",
+    "GENE MADDY",
+    "GERBES PHARMACY",
+    "HARRIS TEETER",
+    "JAY C",
+    "KING SOOPERS",
+    "KROGER",
+    "MARIANO'S",
+    "METRO MARKET",
+    "OWEN'S",
+    "PAYLESS",
+    "PICK 'N SAVE",
+    "QFC",
+    "RALPHS",
+    "SCOTT'S",
+    "SMITH'S",
+];
+
+function isKroger(pharmacy) {
+    for (let name of kroger_names) {
+        if (pharmacy.includes(name) || name.includes(pharmacy)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 
 /**
  * @return {string}
@@ -193,7 +229,8 @@ async function handler(event, context) {
 
                             }
                             // Other Prices
-                        } else if (value[pharmIndex].name.toUpperCase().includes("KROGER")) {
+                        } else if (isKroger(value[pharmIndex].name.toUpperCase())) {
+                            console.log("KROGER PRICE FOUND: " + value[pharmIndex].name.toUpperCase());
                             if (KrogerPrice.price == null || KrogerPrice.price > parseFloat(value.price)) {
                                 KrogerPrice.price = parseFloat(value.price);
                                 KrogerPrice.pharmacy = value[pharmIndex].name;

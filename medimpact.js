@@ -14,6 +14,42 @@ const client = new Client({
 });
 client.connect();
 
+let kroger_names = [
+    "KROGER AFFILIATES",
+    "BAKER'S",
+    "CITY MARKET",
+    "COPPS FOOD CENTER",
+    "DILLONS",
+    "FOOD4LESS",
+    "FRED MEYER",
+    "FRY'S",
+    "GENE MADDY",
+    "GERBES PHARMACY",
+    "HARRIS TEETER",
+    "JAY C",
+    "KING SOOPERS",
+    "KROGER",
+    "MARIANO'S",
+    "METRO MARKET",
+    "OWEN'S",
+    "PAYLESS",
+    "PICK 'N SAVE",
+    "QFC",
+    "RALPHS",
+    "SCOTT'S",
+    "SMITH'S",
+];
+
+function isKroger(pharmacy) {
+    for (let name of kroger_names) {
+        if (pharmacy.includes(name) || name.includes(pharmacy)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function comparePrices(a, b) {
     if (a.price === null) return 1;
     if (b.price === null) return -1;
@@ -116,7 +152,7 @@ async function handler(event, context) {
                                         WalgreenPrice.pharmacy = value.pharmacy.name;
                                     }
 
-                                } else if (value.pharmacy.name.toUpperCase().includes("KROGER")) {
+                                } else if (isKroger(value.pharmacy.name.toUpperCase())) {
                                     if (KrogerPrice.price == null || KrogerPrice.price > parseFloat(value["pricing"].price)) {
                                         KrogerPrice.price = parseFloat(value["pricing"].price);
                                         KrogerPrice.pharmacy = value.pharmacy.name;
