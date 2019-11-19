@@ -4,9 +4,8 @@ const {Client} = require('/opt/node_modules/pg');
 
 // DEV IMPORTS
 // const rp = require('request-promise');
-// const {
-//     Client
-// } = require('pg');
+// const { Client } = require('pg');
+
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
 let reg = process.env.REGION || "california";
 const client = new Client({
@@ -78,6 +77,7 @@ async function getGoodRxPrices(url, options, drugId, query, values, client) {
 
         if (data !== undefined) {
             let results = data.results;
+            let otherPrices = [];
             // console.log(results);
             let CVSPrice = {};
             CVSPrice.price = null;
@@ -130,18 +130,25 @@ async function getGoodRxPrices(url, options, drugId, query, values, client) {
                         }
 
                     } else {
-                        if (OtherPrice.price == null || OtherPrice.price > parseFloat(value["prices"][0].price)) {
-                            OtherPrice.price = parseFloat(value["prices"][0].price);
-                            OtherPrice.pharmacy = value.pharmacy.name;
-                        }
-
+                        otherPrices.push({
+                            price: parseFloat(value["prices"][0].price),
+                            pharmacy: value.pharmacy.name,
+                            lowestPrice: parseFloat(value["prices"][0].price)
+                        });
                     }
 
                 }
             });
-            let pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, OtherPrice, KrogerPrice];
-            // console.log(pricesArr);
-            pricesArr.sort(comparePrices);
+            let pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, KrogerPrice, OtherPrice];
+
+            otherPrices.sort(comparePrices);
+            let other_i = 0;
+            while (pricesArr.find((e) => e.price === undefined || e.price === null) !== undefined && other_i < otherPrices.length) {
+                let i = pricesArr.findIndex((e) => e.price === undefined || e.price === null);
+                console.log("REPLACED EMPTY VALUE WITH " + otherPrices[other_i].pharmacy);
+                pricesArr[i] = otherPrices[other_i];
+                other_i += 1;
+            }
 
             pricesArr[0].rank = 0;
             pricesArr[1].rank = 1;
@@ -170,7 +177,7 @@ async function getGoodRxPrices(url, options, drugId, query, values, client) {
                 query = 'INSERT INTO public_price(average_price, createdat, difference, drug_details_id, lowest_market_price, pharmacy, price, program_id, recommended_price,rank,unc_price) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *;';
                 values = [
                     pricingData.average_price,
-                    pricingData.createdat,
+                    DateFunction(),
                     pricingData.difference,
                     pricingData.drug_details_id,
                     pricingData.lowest_market_price,

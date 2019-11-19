@@ -127,3 +127,4 @@ const handler = (event, context, callback) => {
 };
 
 exports.handler = handler;
+// module.exports = handler;
