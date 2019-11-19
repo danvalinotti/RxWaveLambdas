@@ -4,9 +4,8 @@ const {Client} = require('/opt/node_modules/pg');
 
 // DEV IMPORTS
 // const rp = require('request-promise');
-// const {
-//     Client
-// } = require('pg');
+// const { Client } = require('pg');
+
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
 let reg = process.env.REGION || "virginia";
 const client = new Client({
@@ -108,6 +107,7 @@ async function handler(event, context) {
             try {
                 await rp(url)
                     .then(async function (response) {
+                        let otherPrices = [];
                         let jsondata = JSON.parse(response);
                         let CVSPrice = {};
                         CVSPrice.price = null;
@@ -160,17 +160,25 @@ async function handler(event, context) {
 
                                 } else {
                                     if (OtherPrice.price == null || OtherPrice.price > parseFloat(value["pricing"].price)) {
-                                        OtherPrice.price = parseFloat(value["pricing"].price);
-                                        OtherPrice.pharmacy = value.pharmacy.name;
+                                        otherPrices.push({
+                                            price: parseFloat(value["pricing"].price),
+                                            pharmacy: value.pharmacy.name
+                                        });
                                     }
-
                                 }
-
                             }
                         });
                         let pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, OtherPrice, KrogerPrice];
-                        console.log(pricesArr);
-                        pricesArr.sort(comparePrices);
+                        // console.log(pricesArr);
+
+                        otherPrices.sort(comparePrices);
+                        let other_i = 0;
+                        while (pricesArr.find((e) => e.price === undefined || e.price === null) !== undefined && other_i < otherPrices.length) {
+                            let i = pricesArr.findIndex((e) => e.price === undefined || e.price === null);
+                            console.log("REPLACED EMPTY VALUE WITH " + otherPrices[other_i].pharmacy);
+                            pricesArr[i] = otherPrices[other_i];
+                            other_i += 1;
+                        }
 
                         pricesArr[0].rank = 0;
                         pricesArr[1].rank = 1;
@@ -184,7 +192,7 @@ async function handler(event, context) {
                             pricingData1.rank = price.rank;
                             //console.log("price="+pricingData1.price);
                             const query2 = 'INSERT INTO public_price(average_price, createdat, difference, drug_details_id, lowest_market_price, pharmacy, price, program_id, recommended_price,rank,unc_price) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *';
-                            const values = [pricingData1.average_price, pricingData1.createdat, pricingData1.difference, drugUrlList.rows[0]["drug_id"], pricingData1.lowest_market_price, pricingData1.pharmacy, pricingData1.price, pricingData1.program_id, pricingData1.recommended_price, pricingData1.rank, null];
+                            const values = [pricingData1.average_price, DateFunction(), pricingData1.difference, drugUrlList.rows[0]["drug_id"], pricingData1.lowest_market_price, pricingData1.pharmacy, pricingData1.price, pricingData1.program_id, pricingData1.recommended_price, pricingData1.rank, null];
                             await client.query(query2, values)
                                 .catch(e => {
                                     console.log(e)

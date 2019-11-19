@@ -6,9 +6,8 @@ const {
 
 // DEV IMPORTS
 // const rp = require('request-promise');
-// const {
-//     Client
-// } = require('pg');
+// const { Client } = require('pg');
+
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
 let reg = process.env.REGION || "virginia";
 const client = new Client({
@@ -256,7 +255,7 @@ async function handler(event, context) {
                         }
                     }
 
-                    let pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, OtherPrice, KrogerPrice];
+                    let pricesArr = [WalgreenPrice, WalmartPrice, CVSPrice, KrogerPrice, OtherPrice];
                     // console.log(pricesArr);
                     // console.log("///////////////////////////////////////");
                     otherPrices.sort(comparePrices);
@@ -270,7 +269,7 @@ async function handler(event, context) {
 
                         other_i += 1;
                     }
-                    pricesArr.sort(comparePrices);
+                    // pricesArr.sort(comparePrices);
 
                     pricesArr[0].rank = 0;
                     pricesArr[1].rank = 1;
@@ -287,7 +286,7 @@ async function handler(event, context) {
 
 
                         query2 = 'INSERT INTO public_price(average_price, createdat, difference, drug_details_id, lowest_market_price, pharmacy, price, program_id, recommended_price, rank,unc_price) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *';
-                        values = [pricingData1.average_price, pricingData1.createdat, pricingData1.difference, DrugId, pricingData1.lowest_market_price, pricingData1.pharmacy, pricingData1.price, pricingData1.program_id, pricingData1.recommended_price, pricingData1.rank, pricingData1.uncPrice];
+                        values = [pricingData1.average_price, DateFunction(), pricingData1.difference, DrugId, pricingData1.lowest_market_price, pricingData1.pharmacy, pricingData1.price, pricingData1.program_id, pricingData1.recommended_price, pricingData1.rank, pricingData1.uncPrice];
                         await client.query(query2, values)
                             .catch(e => {
                                 console.log(e)
