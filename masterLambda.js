@@ -1,10 +1,13 @@
 const {Client} = require('pg');
 let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
-const client = new Client({
+const clientPub = new Client({
     connectionString: db_host
 });
-client.connect();
-
+clientPub.connect();
+const clientPriv = new Client({
+    connectionString: "postgresql://cheetahdb:Galaxy123@prod-privdb.cl9r4vrjkocy.us-east-1.rds.amazonaws.com/postgres"
+});
+clientPriv.connect();
 // Define regions and random number for shuffling
 let regions = ["virginia", "ohio", "oregon", "california", "central"];
 // Random number of region entries
@@ -17,7 +20,7 @@ function _randomnumber(max, min) {
 const handler = (event, context, callback) => {
     let sum = 0;
     // Query pulls drug IDs from report_dm to be put in shuffle_drugs
-    client.query(`SELECT DISTINCT drug_id FROM report_dm;`, (err, res) => {
+    clientPriv.query(`SELECT DISTINCT drug_id FROM report_dm;`, (err, res) => {
         if (err) console.log(err, null);
         let shuffleData = [];
 
@@ -30,7 +33,7 @@ const handler = (event, context, callback) => {
         shuffleData.sort(() => Math.random() - 0.5);
 
         // Truncate table before entering new data
-        client.query('truncate table shuffle_drugs', (error) => {
+        clientPub.query('truncate table shuffle_drugs', (error) => {
             if (error) {
                 throw error;
             }
@@ -50,7 +53,7 @@ const handler = (event, context, callback) => {
                 const values = [regions[j], regionArr1[k], 'pending', 'pending', 'pending', 'pending', 'pending', 'pending', 'pending'];
 
                 // Insert data into shuffle_drugs
-                client.query(query2, values, (error) => {
+                clientPub.query(query2, values, (error) => {
                     if (error) {
                         throw error;
                     }
