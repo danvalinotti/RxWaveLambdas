@@ -1,13 +1,16 @@
 const {Client} = require('pg');
-let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
+// let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
+let db_host = "postgresql://postgres:secret@100.25.217.246/rxwavedb_qa";
+
 const clientPub = new Client({
     connectionString: db_host
 });
 clientPub.connect();
-const clientPriv = new Client({
-    connectionString: "postgresql://cheetahdb:Galaxy123@prod-privdb.cl9r4vrjkocy.us-east-1.rds.amazonaws.com/postgres"
-});
-clientPriv.connect();
+// const clientPriv = new Client({
+//     connectionString: "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres"
+//     // connectionString: "postgresql://cheetahdb:Galaxy123@prod-privdb.cl9r4vrjkocy.us-east-1.rds.amazonaws.com/postgres"
+// });
+// clientPriv.connect();
 // Define regions and random number for shuffling
 let regions = ["virginia", "ohio", "oregon", "california", "central"];
 // Random number of region entries
@@ -20,12 +23,12 @@ function _randomnumber(max, min) {
 const handler = (event, context, callback) => {
     let sum = 0;
     // Query pulls drug IDs from report_dm to be put in shuffle_drugs
-    clientPriv.query(`SELECT DISTINCT drug_id FROM report_dm;`, (err, res) => {
+    clientPub.query(`SELECT DISTINCT drug_id FROM report_dm;`, (err, res) => {
         if (err) console.log(err, null);
         let shuffleData = [];
 
         // Extract drug_ids from response
-        for (let j = 0; j < (res.rows).length; j++) {
+        for (let j = 0; j < res.rows.length; j++) {
             shuffleData.push(res.rows[j]["drug_id"]);
         }
 
@@ -83,3 +86,5 @@ const handler = (event, context, callback) => {
 
 exports.handler = handler;
 // module.exports = handler;
+
+
