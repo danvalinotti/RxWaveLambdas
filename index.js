@@ -1,8 +1,11 @@
 // RxWave Test functions
 
-// // MASTER LAMBDA
-// const handler = require('./masterLambda');
-// const promise = handler();
+// MASTER LAMBDA
+const handler = require('./masterLambda');
+const promise = handler(null, null, function() {
+    console.log("Done");
+    process.exit(0);
+});
 
 //// INSIDE RX
 // const handler = require('./insiderx');

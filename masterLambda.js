@@ -1,130 +1,90 @@
-const { Client } = require('pg');
-let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
-const client = new Client({
+const {Client} = require('pg');
+// let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
+let db_host = "postgresql://postgres:secret@100.25.217.246/rxwavedb_qa";
+
+const clientPub = new Client({
     connectionString: db_host
 });
-client.connect();
-let regions = ["virginia", "ohio", "oregon", "california", "central"];;
+clientPub.connect();
+// const clientPriv = new Client({
+//     connectionString: "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres"
+//     // connectionString: "postgresql://cheetahdb:Galaxy123@prod-privdb.cl9r4vrjkocy.us-east-1.rds.amazonaws.com/postgres"
+// });
+// clientPriv.connect();
+// Define regions and random number for shuffling
+let regions = ["virginia", "ohio", "oregon", "california", "central"];
+// Random number of region entries
 let _randomNo = _randomnumber(10, 15);
 
 function _randomnumber(max, min) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-let sum = 0, counter = 0;
-let ShuffleData = [];
-let flag = "pending";
-
-//funtion to handle shuffle
-'use strict';
-function shuffle(arr, options) {
-    if (!Array.isArray(arr)) {
-        throw new Error('shuffle expect an array as parameter.');
-    }
-    options = options || {};
-
-    let collection = arr,
-        len = arr.length,
-        rng = options["rng"] || Math.random,
-        random,
-        temp;
-
-    if (options.copy === true) {
-        collection = arr.slice();
-    }
-
-    while (len) {
-        random = Math.floor(rng() * len);
-        len -= 1;
-        temp = collection[len];
-        collection[len] = collection[random];
-        collection[random] = temp;
-    }
-    return collection;
-
-}
-
-let data = [];
-
 const handler = (event, context, callback) => {
-    client.query('SELECT drug_id FROM drug_request where program_id = 4', (err, res) => { // program_id 4 is for singlecare
+    let sum = 0;
+    // Query pulls drug IDs from report_dm to be put in shuffle_drugs
+    clientPub.query(`SELECT DISTINCT drug_id FROM report_dm;`, (err, res) => {
+        if (err) console.log(err, null);
+        let shuffleData = [];
 
-        console.log(err, null);
-
-        console.log("reslen:" + (res.rows).length);
-
-        for (let j = 0; j < (res.rows).length; j++) {
-
-            data.push(res.rows[j]);
-
+        // Extract drug_ids from response
+        for (let j = 0; j < res.rows.length; j++) {
+            shuffleData.push(res.rows[j]["drug_id"]);
         }
 
-        console.log("random number" + _randomNo);
+        // Shuffle drug_ids in array
+        shuffleData.sort(() => Math.random() - 0.5);
 
-
-        //_shuffledata = shuffle(res);
-
-        console.log("datalength" + data.length);
-
-        // console.log(data)
-
-        ShuffleData = shuffle(data);
-
-        console.log(ShuffleData);
-
-        //console.log(typeof(data))
-
-        //callback(null, data)
-
-        console.log("rrrrrrrrrrrrrrrrr::" + ShuffleData[0]["drug_id"]);
-
-
-        let Shuffle_Data = [];
-
-        for (let k = 0; k < ShuffleData.length; k++) {
-
-            Shuffle_Data.push(ShuffleData[k]["drug_id"]);
-
-        }
-
-        //console.log(_shuffle_data)
-
-        const truncate = 'truncate table shuffle_drugs';
-
-        client.query(truncate, (error) => {
+        // Truncate table before entering new data
+        clientPub.query('truncate table shuffle_drugs', (error) => {
             if (error) {
                 throw error;
             }
         });
 
-        for (let i = 0, j = 0; i < Shuffle_Data.length;) {
+        // Loop through drug_ids to add to DB
+        let dataCount = 0;
+        for (let i = 0, j = 0; i < shuffleData.length;) {
             sum += _randomNo;
-            let regionArr1 = Shuffle_Data.slice(i, sum);
-            console.log(regionArr1);
 
+            // Split data into regions
+            let regionArr1 = shuffleData.slice(i, sum);
+
+            // Loop through each region's drugs
             for (let k = 0; k < regionArr1.length; k++) {
                 const query2 = 'INSERT INTO shuffle_drugs(region,request_id,insiderx_flag, wellrx_flag, medimpact_flag, singlecare_flag, blink_flag, goodrx_flag, usp_flag) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *';
                 const values = [regions[j], regionArr1[k], 'pending', 'pending', 'pending', 'pending', 'pending', 'pending', 'pending'];
 
-                client.query(query2, values, (error) => {
+                // Insert data into shuffle_drugs
+                clientPub.query(query2, values, (error) => {
                     if (error) {
                         throw error;
+                    }
+
+                    // Track if all entries are mad in db
+                    if (dataCount + 1 === shuffleData.length) {
+                        // Differentiate between testing and production (prod has no callback)
+                        if (callback) callback();
+                        else process.exit();
+                    } else {
+                        dataCount++;
                     }
                 });
             }
 
+            // Handle size of region arrays
             i = i + _randomNo;
             if (j >= regions.length - 1) {
                 j = 0
             } else {
                 j++
             }
-
-            counter++
         }
-        console.log(counter)
     });
+
 };
 
 exports.handler = handler;
 // module.exports = handler;
+
+
