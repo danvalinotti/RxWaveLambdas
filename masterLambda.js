@@ -1,6 +1,6 @@
 const {Client} = require('pg');
-// let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
-let db_host = "postgresql://postgres:secret@100.25.217.246/rxwavedb_qa";
+let db_host = process.env.DB_HOST || "postgresql://postgres:galaxy123456@database-2.ch91gk9zmx2h.us-east-1.rds.amazonaws.com/postgres";
+// let db_host = "postgresql://postgres:secret@100.25.217.246/rxwavedb_qa";
 
 const clientPub = new Client({
     connectionString: db_host
@@ -19,11 +19,15 @@ let _randomNo = _randomnumber(10, 15);
 function _randomnumber(max, min) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
 const handler = (event, context, callback) => {
     let sum = 0;
+    // Day of week
+    let day = '%' + days[new Date().getDay()] + '%';
+
     // Query pulls drug IDs from report_dm to be put in shuffle_drugs
-    clientPub.query(`SELECT DISTINCT drug_id FROM report_dm;`, (err, res) => {
+    clientPub.query(`SELECT DISTINCT drug_id FROM report_dm WHERE schedule LIKE '${day}'`, (err, res) => {
         if (err) console.log(err, null);
         let shuffleData = [];
 
